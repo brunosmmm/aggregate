@@ -44,9 +44,16 @@ class PeriodicPiNode(object):
                 try:
                     loaded_mod_id = driver_manager.load_module(service['service_name'],
                                                                server_address=self.addr.address,
-                                                               server_port=self.addr.port)
+                                                               server_port=int(service['port']))
                 except ModuleAlreadyLoadedError:
                     pass
+                except TypeError:
+                    #load without address (not needed)?
+                    try:
+                        loaded_mod_id = driver_manager.load_module(service['service_name'])
+                    except Exception:
+                        #give up
+                        raise
 
             else:
                 self.logger.warn('no driver available for service {}'.format(service['service_name']))
