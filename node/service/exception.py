@@ -14,3 +14,9 @@ class ModuleNotLoadedError(Exception):
 
 class ModuleAlreadyLoadedError(Exception):
     pass
+
+class ModuleInvalidPropertyError(Exception):
+    pass
+
+class ModulePropertyPermissionError(Exception):
+    pass

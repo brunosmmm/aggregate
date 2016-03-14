@@ -1,5 +1,6 @@
 from collections import namedtuple
-from node.service.exception import ModuleLoadError, ModuleNotLoadedError
+from node.service.exception import ModuleLoadError, ModuleNotLoadedError, ModuleInvalidPropertyError, ModulePropertyPermissionError
+from node.service.prop import DriverPropertyPermissions
 
 #simple description for arguments
 NodeServiceDriverArgument = namedtuple('NodeServiceDriverArgument', ['arg_name', 'arg_help'])
@@ -12,6 +13,7 @@ class NodeServiceDriver(object):
     _optional_kw = []
     _module_desc = NodeServiceDriverArgument(None, None)
     _capabilities = []
+    _properties = []
     _registered_id = None
     _mod_handler = None
 
@@ -78,3 +80,23 @@ class NodeServiceDriver(object):
 
     def log_error(self, message):
         self.interrupt_handler(log_error=message)
+
+    def get_property_value(self, property_name):
+        if property_name in self._properties:
+            if self._properties[property_name].permissions == DriverPropertyPermissions.READ or\
+               self._properties[property_name].permissions == DriverPropertyPermissions.RW:
+                return self._properties[property_name].getter()
+            else:
+                raise ModulePropertyPermissionError('property "{}" does not have read permissions'.format(property_name))
+
+        raise ModuleInvalidPropertyError('object does not have property: "{}"'.format(property_name))
+
+    def set_property_value(self, property_name, value):
+        if property_name in self._properties:
+            if self._properties[property_name].permissions == DriverPropertyPermissions.WRITE or\
+               self._properties[property_name].permissions == DriverPropertyPermissions.RW:
+                self._properties[property_name].setter(value)
+            else:
+                raise ModulePropertyPermissionError('property "{}" does not have write permissions'.format(property_name))
+
+        raise ModuleInvalidPropertyError('object does not have property: "{}"'.format(property_name))
