@@ -1,0 +1,3 @@
+[submodule "periodicpy"]
+	path = periodicpy
+	url = git@bitbucket.org:brunosmmm/periodicpy.git
