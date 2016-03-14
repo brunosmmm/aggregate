@@ -49,7 +49,7 @@ class PeriodicPiAgg(object):
         new_node = PeriodicPiNode(m.group(1), [kwargs['address'], kwargs['port']])
         #scan
         new_node.register_basic_information()
-        new_node.register_services(self.available_drivers)
+        new_node.register_services(self.available_drivers, self.drvman)
 
         self.active_nodes[m.group(1)] = new_node
 
