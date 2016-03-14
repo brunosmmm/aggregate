@@ -36,14 +36,28 @@ class AvahiDiscoverLoop(StoppableThread):
         def _item_resolved_cb(*args):
             if self.resolve_cb != None:
                 #call everything as named arguments, discard DBus types!
-                self.resolve_cb(name=str(args[2]),
+                self.resolve_cb(iface=int(args[0]),
+                                proto=int(args[1]),
+                                kind=str(args[3]),
+                                name=str(args[2]),
                                 host=str(args[5]),
                                 address=str(args[7]),
                                 port=int(args[8]),
                                 text=get_service_text_list(args[9]))
 
         def _error_cb(*args):
-            pass
+            print args
+
+        def _item_remove_event(interface, protocol, name, stype, domain, flags):
+            if flags & avahi.LOOKUP_RESULT_LOCAL:
+                # local service, skip
+                pass
+
+            if self.remove_cb != None:
+                self.remove_cb(iface=int(interface),
+                               proto=int(protocol),
+                               kind=str(stype),
+                               name=str(name))
 
         def _item_new_event(interface, protocol, name, stype, domain, flags):
             if flags & avahi.LOOKUP_RESULT_LOCAL:
@@ -66,7 +80,11 @@ class AvahiDiscoverLoop(StoppableThread):
                                                                           'local',
                                                                           dbus.UInt32(0))),
                                   avahi.DBUS_INTERFACE_SERVICE_BROWSER)
+
+        #connect new item signal
         sbrowser.connect_to_signal("ItemNew", _item_new_event)
+        #connect item remove signal
+        sbrowser.connect_to_signal("ItemRemove", _item_remove_event)
 
         self.main_loop = gobject.MainLoop()
 
