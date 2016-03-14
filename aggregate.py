@@ -1,9 +1,11 @@
 from discover.discover import AvahiDiscoverLoop
-from node.scan import scan_new_node
 from node.node import PeriodicPiNode
 import signal
 import avahi
 import re
+import importlib
+import logging
+from drvman import DriverManager
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 
@@ -14,6 +16,13 @@ class PeriodicPiAgg(object):
     def __init__(self, filter_iface=None):
         self.active_nodes = {}
         self.listen_iface = filter_iface
+
+        self.logger = logging.getLogger('ppagg.ctrl')
+
+        self.drvman = DriverManager('ppagg')
+        self.available_drivers = []
+        for driver in self.drvman.list_discovered_modules():
+            self.available_drivers.append(driver.arg_name)
 
     def discover_new_node(self, **kwargs):
         #filter out uninteresting stuff
@@ -39,13 +48,14 @@ class PeriodicPiAgg(object):
         #add node
         new_node = PeriodicPiNode(m.group(1), [kwargs['address'], kwargs['port']])
         #scan
-        new_node.register_basic_information(**scan_new_node(new_node.addr))
+        new_node.register_basic_information()
+        new_node.register_services(self.available_drivers)
 
         self.active_nodes[m.group(1)] = new_node
 
-        print 'new node = {} ({}) at {}'.format(new_node.node_element,
-                                                new_node.description,
-                                                new_node.location)
+        self.logger.info('new node: {} ({}) at {}'.format(new_node.node_element,
+                                                          new_node.description,
+                                                          new_node.location))
 
     def remove_node(self, **kwargs):
 
@@ -53,6 +63,17 @@ class PeriodicPiAgg(object):
         pass
 
 if __name__ == "__main__":
+
+    logging.basicConfig(level=logging.DEBUG,
+                        filename='ppagg.log',
+                        filemode='a',
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    #console = logging.StreamHandler()
+    #console.setLevel(logging.INFO)
+    #logging.getLogger('').addHandler(console)
+
+    logger = logging.getLogger('ppagg')
 
     aggregator = PeriodicPiAgg()
     discover_loop = AvahiDiscoverLoop(service_resolved_cb=aggregator.discover_new_node,
