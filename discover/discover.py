@@ -23,8 +23,12 @@ class AvahiDiscoverLoop(StoppableThread):
         super(AvahiDiscoverLoop, self).__init__()
         self.resolve_cb = service_resolved_cb
         self.remove_cb = service_removed_cb
-        self.type_filter = type_filter
         self.main_loop = None
+
+        if type_filter == None:
+            self.type_filter = ['_http._tcp']
+        else:
+            self.type_filter = type_filter
 
     def stop(self):
         super(AvahiDiscoverLoop, self).stop()
@@ -73,18 +77,21 @@ class AvahiDiscoverLoop(StoppableThread):
         bus = dbus.SystemBus(mainloop=loop)
         server = dbus.Interface(bus.get_object(avahi.DBUS_NAME, '/'),
                                      'org.freedesktop.Avahi.Server')
-        sbrowser = dbus.Interface(bus.get_object(avahi.DBUS_NAME,
-                                                 server.ServiceBrowserNew(avahi.IF_UNSPEC,
-                                                                          avahi.PROTO_UNSPEC,
-                                                                          '_http._tcp',
-                                                                          'local',
-                                                                          dbus.UInt32(0))),
-                                  avahi.DBUS_INTERFACE_SERVICE_BROWSER)
 
-        #connect new item signal
-        sbrowser.connect_to_signal("ItemNew", _item_new_event)
-        #connect item remove signal
-        sbrowser.connect_to_signal("ItemRemove", _item_remove_event)
+        #register several kinds of service
+        for service_type in self.type_filter:
+            sbrowser = dbus.Interface(bus.get_object(avahi.DBUS_NAME,
+                                                     server.ServiceBrowserNew(avahi.IF_UNSPEC,
+                                                                              avahi.PROTO_UNSPEC,
+                                                                              service_type,
+                                                                              'local',
+                                                                              dbus.UInt32(0))),
+                                      avahi.DBUS_INTERFACE_SERVICE_BROWSER)
+
+            #connect new item signal
+            sbrowser.connect_to_signal("ItemNew", _item_new_event)
+            #connect item remove signal
+            sbrowser.connect_to_signal("ItemRemove", _item_remove_event)
 
         self.main_loop = gobject.MainLoop()
 
