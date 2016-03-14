@@ -78,7 +78,7 @@ class DriverManager(object):
                                                                                    handler=self.module_handler,
                                                                                    **kwargs)
             self.logger.info('Loaded module "{}" as "{}"'.format(module_name, multi_inst_name))
-            return
+            return multi_inst_name
 
         #load (create object)
         self.loaded_modules[module_name] = self.found_modules[module_name](module_id=module_name,
@@ -86,6 +86,7 @@ class DriverManager(object):
                                                                            **kwargs)
 
         self.logger.info('Loaded module "{}"'.format(module_name))
+        return module_name
 
     def unload_module(self, module_name):
 
