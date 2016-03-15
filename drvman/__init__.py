@@ -7,6 +7,7 @@ import importlib
 import logging
 from node.service.driver import NodeServiceDriver, NodeServiceDriverArgument, DriverCapabilities
 from node.service.exception import ModuleLoadError, ModuleAlreadyLoadedError, ModuleNotLoadedError
+from drvman.exception import HookNotAvailableError
 #from jux.module.mixin.control import JMControlMixin
 #from jux.module.mixin.library import JMLibraryMixin
 #from jux.module.mixin.asource import JMAudioSourceMixin
@@ -29,6 +30,11 @@ def handle_multiple_instance(module_name, loaded_module_list):
 
     return sorted(instance_list)[-1] + 1
 
+class DriverManagerHookActions(object):
+    NO_ACTION = 0
+    LOAD_MODULE = 1
+    UNLOAD_MODULE = 2
+
 class DriverManager(object):
     """Module manager class"""
     def __init__(self, central_log):
@@ -37,8 +43,44 @@ class DriverManager(object):
         self.loaded_modules = {}
         self.logger = logging.getLogger('{}.drvman'.format(central_log))
 
+        #hooks
+        self.attached_hooks = {'drvman.new_node' : [],
+                               'drvman.rem_node' : []}
+
+        self.custom_hooks = {}
+
         #discover modules
         self.discover_modules()
+
+    def install_custom_hook(self, hook_name, callback):
+        self.custom_hooks[hook_name] = callback
+
+    def install_driver_hook(self, attach_to, callback, action, driver_class):
+        #so simple?
+        if attach_to in self.attached_hooks:
+            self.attached_hooks[attach_to].append((callback, action, driver_class))
+            self.logger.debug('callback {} installed into hook {} with action {}'.format(callback,
+                                                                                         attach_to,
+                                                                                         action))
+            return
+
+        raise HookNotAvailableError('the requested hook is not available')
+
+    #default manager hooks
+    def new_node_discovered_event(self, **kwargs):
+        for attached_callback in self.attached_hooks['drvman.new_node']:
+            if attached_callback[0](**kwargs):
+                if attached_callback[1] == DriverManagerHookActions.LOAD_MODULE:
+                    #load the module!
+                    self.logger.debug('some hook returned true, loading module {}'.format(attached_callback[2]))
+                    #module must accept same kwargs, this is mandatory with this discovery event
+                    self.load_module(attached_callback[2].get_module_desc().arg_name,
+                                     **kwargs)
+
+    #def driver_post_load_hook()
+
+    def node_removed_event(self, **kwargs):
+        pass
 
     def discover_modules(self):
 
@@ -53,7 +95,7 @@ class DriverManager(object):
 
             try:
                 the_mod = importlib.import_module('plugins.{}'.format(module))
-                module_class = the_mod.discover_module()
+                module_class = the_mod.discover_module(self)
                 self.found_modules[module_class.get_module_desc().arg_name] = module_class
                 self.logger.info('Discovered module "{}"'.format(module_class.get_module_desc().arg_name))
             except ImportError as error:
@@ -66,6 +108,9 @@ class DriverManager(object):
         """Load a module that has been previously discovered"""
         if module_name not in self.found_modules:
             raise ModuleLoadError('invalid module name')
+
+        #insert self object in kwargs for now
+        kwargs.update({'drvman' : self})
 
         if module_name in self.loaded_modules:
             if DriverCapabilities.MultiInstanceAllowed not in self.found_modules[module_name].get_capabilities():
@@ -130,12 +175,20 @@ class DriverManager(object):
     def list_discovered_modules(self):
         return [x.get_module_desc() for x in self.found_modules.values()]
 
-    def module_handler(self, which_module, **kwargs):
+    def module_handler(self, which_module, *args, **kwargs):
+
+        if 'get_available_drivers' in args:
+            return [x.get_module_desc().arg_name for x in self.found_modules.values()]
 
         for kwg, value in kwargs.iteritems():
             if kwg in MODULE_HANDLER_LOGGING_KWARGS:
                 #dispatch logger
                 self._log_module_message(which_module, kwg, value)
+                return None
+
+            if kwg == 'call_custom_hook':
+                if value[0] in self.custom_hooks:
+                    return self.custom_hooks[value[0]](*value[1])
 
     def _log_module_message(self, module, level, message):
 
