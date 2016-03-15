@@ -67,12 +67,12 @@ class NodeServiceDriver(object):
         """Handle communication from manager (module-specific)"""
         pass
 
-    def interrupt_handler(self, **kwargs):
+    def interrupt_handler(self, *args, **kwargs):
         """Get attention of handler"""
         if self._mod_handler == None or self._registered_id == None:
             raise ModuleNotLoadedError('module is not registered')
 
-        self._mod_handler(self._registered_id, **kwargs)
+        return self._mod_handler(self._registered_id, *args, **kwargs)
 
     def log_info(self, message):
         self.interrupt_handler(log_info=message)
