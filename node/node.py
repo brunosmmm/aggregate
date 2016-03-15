@@ -12,9 +12,22 @@ class PeriodicPiNode(object):
         self.addr = NodeAddress(*node_address)
         #initial state
         self.scanned = False
-        self.services = {}
+        self.scanned_services = {}
+        self.service_drivers = {}
 
         self.logger = logging.getLogger('ppagg.node-{}'.format(node_element))
+
+    def get_serializable_dict(self):
+        ret = {}
+
+        ret['node_addr'] = self.addr.address
+        ret['node_port'] = self.addr.port
+        ret['node_descr'] = self.description
+        ret['node_location'] = self.location
+        ret['scanned_services'] = self.scanned_services
+        ret['driver_instances'] = self.service_drivers
+
+        return ret
 
     def register_basic_information(self):
 
@@ -30,6 +43,7 @@ class PeriodicPiNode(object):
     def register_services(self, available_drivers, driver_manager):
 
         scan_result = scan_node_services(self.addr)
+        self.scanned_services = dict(scan_result)
 
         for service in scan_result['services']:
             self.logger.debug('discovered service "{}"'.format(service['service_name']))
@@ -59,4 +73,4 @@ class PeriodicPiNode(object):
                 self.logger.warn('no driver available for service {}'.format(service['service_name']))
 
             #save module information
-            self.services[service['service_name']] = loaded_mod_id
+            self.service_drivers[service['service_name']] = loaded_mod_id
