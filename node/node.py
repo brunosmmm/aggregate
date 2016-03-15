@@ -17,6 +17,9 @@ class PeriodicPiNode(object):
 
         self.logger = logging.getLogger('ppagg.node-{}'.format(node_element))
 
+    def get_node_element(self):
+        return self.element
+
     def get_serializable_dict(self, simple=True):
         ret = {}
 
