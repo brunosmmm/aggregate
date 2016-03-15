@@ -30,6 +30,9 @@ class AvahiDiscoverLoop(StoppableThread):
         else:
             self.type_filter = type_filter
 
+        #make sure that gobject is OK with threads
+        gobject.threads_init()
+
     def stop(self):
         super(AvahiDiscoverLoop, self).stop()
         print 'STOPPING'
