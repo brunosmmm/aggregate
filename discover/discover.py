@@ -2,6 +2,7 @@ import dbus, gobject, avahi
 from dbus import DBusException
 from dbus.mainloop.glib import DBusGMainLoop
 from util.thread import StoppableThread
+import signal
 
 def get_service_text_list(byte_array):
     if byte_array.signature != 'ay':
@@ -35,7 +36,6 @@ class AvahiDiscoverLoop(StoppableThread):
 
     def stop(self):
         super(AvahiDiscoverLoop, self).stop()
-        print 'STOPPING'
         self.main_loop.quit()
 
     def run(self):
@@ -58,7 +58,7 @@ class AvahiDiscoverLoop(StoppableThread):
         def _item_remove_event(interface, protocol, name, stype, domain, flags):
             if flags & avahi.LOOKUP_RESULT_LOCAL:
                 # local service, skip
-                pass
+                return
 
             if self.remove_cb != None:
                 self.remove_cb(iface=int(interface),
@@ -69,7 +69,7 @@ class AvahiDiscoverLoop(StoppableThread):
         def _item_new_event(interface, protocol, name, stype, domain, flags):
             if flags & avahi.LOOKUP_RESULT_LOCAL:
                 # local service, skip
-                pass
+                return
 
             server.ResolveService(interface, protocol, name, stype,
                                   domain, avahi.PROTO_UNSPEC, dbus.UInt32(0),

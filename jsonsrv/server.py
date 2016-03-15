@@ -1,6 +1,7 @@
 import pyjsonrpc
 from util.thread import StoppableThread
 import BaseHTTPServer
+import signal
 
 def make_json_server(drv_manager, node_list):
     class PeriodicPiAggJsonServer(pyjsonrpc.HttpRequestHandler):
@@ -49,9 +50,17 @@ class PeriodicPiAggController(StoppableThread):
 
     def run(self):
 
+        def _handle_sigterm(*args):
+            self.stop()
+
+        #signal.signal(signal.SIGTERM, _handle_sigterm)
+
         #generate class with references
         json_server_class = make_json_server(self.drv_manager, self.node_list)
         self.http_server = pyjsonrpc.ThreadingHttpServer(server_address=('localhost', 8080),
                                                          RequestHandlerClass=json_server_class)
 
         self.http_server.serve_forever()
+
+        if self.is_stopped:
+            exit(0)
