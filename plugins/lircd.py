@@ -46,5 +46,5 @@ class LircdDriver(NodeServiceDriver):
                                                     data_type=PPDataTypes.STRING_LIST)
 
 
-def discover_module():
+def discover_module(*args):
     return LircdDriver

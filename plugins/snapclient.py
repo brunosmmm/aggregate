@@ -11,5 +11,5 @@ class SnapClientDriver(NodeServiceDriver):
 
         #don't do anything!
 
-def discover_module():
+def discover_module(*args):
     return SnapClientDriver
