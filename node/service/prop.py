@@ -1,5 +1,10 @@
 from node.service.dtype import PPDataTypes
 
+class DriverPropertyPermissions(object):
+    READ = 0
+    WRITE = 1
+    RW = 2
+
 #driver property
 class DriverProperty(object):
     def __init__(self,
@@ -18,8 +23,3 @@ class DriverProperty(object):
 
         #hacky hack
         self.__dict__.update(kwargs)
-
-class DriverPropertyPermissions(object):
-    READ = 0
-    WRITE = 1
-    RW = 2
