@@ -26,6 +26,15 @@ class PeriodicPiAgg(object):
         for driver in self.drvman.list_discovered_modules():
             self.available_drivers.append(driver.arg_name)
 
+        #install custom hook
+        self.drvman.install_custom_hook('ppagg.add_node', self.add_active_node)
+
+    def add_active_node(self, node_name, node_object):
+        if node_name in self.active_nodes:
+            raise DuplicateNodeError('node is already active')
+
+        self.active_nodes[node_name] = node_object
+
     def discover_new_node(self, **kwargs):
         #filter out uninteresting stuff
         #no IPv6
@@ -39,25 +48,27 @@ class PeriodicPiAgg(object):
             if kwargs['iface'] != self.listen_iface:
                 return
 
-        m = PERIODIC_PI_NODE_REGEX.match(kwargs['name'])
-        if m == None:
-            return
+        self.drvman.new_node_discovered_event(**kwargs)
+
+        #m = PERIODIC_PI_NODE_REGEX.match(kwargs['name'])
+        #if m == None:
+        #    return
 
         #duplicate node (add to logging when available)
-        if m.group(1) in self.active_nodes:
-            return
+        #if m.group(1) in self.active_nodes:
+        #    return
 
         #add node
-        new_node = PeriodicPiNode(m.group(1), [kwargs['address'], kwargs['port']])
+        #new_node = PeriodicPiNode(m.group(1), [kwargs['address'], kwargs['port']])
         #scan
-        new_node.register_basic_information()
-        new_node.register_services(self.available_drivers, self.drvman)
+        #new_node.register_basic_information()
+        #new_node.register_services(self.available_drivers, self.drvman)
 
-        self.active_nodes[m.group(1)] = new_node
+        #self.active_nodes[m.group(1)] = new_node
 
-        self.logger.info('new node: {} ({}) at {}'.format(new_node.node_element,
-                                                          new_node.description,
-                                                          new_node.location))
+        #self.logger.info('new node: {} ({}) at {}'.format(new_node.node_element,
+        #                                                  new_node.description,
+        #                                                  new_node.location))
 
     def remove_node(self, **kwargs):
 
