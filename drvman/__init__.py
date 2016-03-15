@@ -88,6 +88,34 @@ class DriverManager(object):
         self.logger.info('Loaded module "{}"'.format(module_name))
         return module_name
 
+    def get_module_info(self, module_name):
+        if module_name in self.found_modules:
+            return self.found_modules[module_name].get_module_info()
+
+        return None
+
+    def get_module_property(self, module_name, property_name):
+        try:
+            return self.loaded_modules[module_name].get_property_value(property_name)
+        except Exception:
+            return None
+
+    def get_module_property_list(self, module_name):
+        if module_name in self.found_modules:
+            return self.found_modules[module_name].get_module_properties()
+
+        return None
+
+    def list_loaded_modules(self):
+
+        #build list of modules and return with to which node they're attached
+
+        attached_modules = {}
+        for module_name, module in self.loaded_modules.iteritems():
+            attached_modules[module_name] = module.get_loaded_kwarg('attached_node')
+
+        return attached_modules
+
     def unload_module(self, module_name):
 
         if module_name not in self.loaded_modules:

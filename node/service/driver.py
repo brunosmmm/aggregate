@@ -1,6 +1,7 @@
 from collections import namedtuple
 from node.service.exception import ModuleLoadError, ModuleNotLoadedError, ModuleInvalidPropertyError, ModulePropertyPermissionError
 from node.service.prop import DriverPropertyPermissions
+import json
 
 #simple description for arguments
 NodeServiceDriverArgument = namedtuple('NodeServiceDriverArgument', ['arg_name', 'arg_help'])
@@ -14,6 +15,7 @@ class NodeServiceDriver(object):
     _module_desc = NodeServiceDriverArgument(None, None)
     _capabilities = []
     _properties = []
+    _methods = []
     _registered_id = None
     _mod_handler = None
 
@@ -100,3 +102,39 @@ class NodeServiceDriver(object):
                 raise ModulePropertyPermissionError('property "{}" does not have write permissions'.format(property_name))
 
         raise ModuleInvalidPropertyError('object does not have property: "{}"'.format(property_name))
+
+    def get_loaded_kwarg(self, arg_name):
+        if arg_name in self._loaded_kwargs:
+            return self._loaded_kwargs[arg_name]
+
+        return None
+
+    @classmethod
+    def get_module_info(cls):
+
+        #return some information (serializable)
+        module_info = {}
+        module_info['module_desc'] = cls._module_desc.arg_help
+
+        return module_info
+
+    @classmethod
+    def get_module_properties(cls):
+        property_list = {}
+
+        for property_name, prop in cls._properties.iteritems():
+            property_dict = {}
+            #build dictionary
+            property_dict['property_desc'] = prop.property_desc
+            property_dict['permissions'] = prop.permissions
+            property_dict['data_type'] = prop.data_type
+
+            property_list[property_name] = property_dict
+
+        return property_list
+
+    @classmethod
+    def dump_module_structure(cls, json_file):
+        pass
+        #with open(json_file, 'w') as f:
+        #    json.dump(stuff, f)

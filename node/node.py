@@ -17,15 +17,16 @@ class PeriodicPiNode(object):
 
         self.logger = logging.getLogger('ppagg.node-{}'.format(node_element))
 
-    def get_serializable_dict(self):
+    def get_serializable_dict(self, simple=True):
         ret = {}
 
         ret['node_addr'] = self.addr.address
         ret['node_port'] = self.addr.port
         ret['node_descr'] = self.description
         ret['node_location'] = self.location
-        ret['scanned_services'] = self.scanned_services
-        ret['driver_instances'] = self.service_drivers
+        if simple == False:
+            ret['scanned_services'] = self.scanned_services
+            ret['driver_instances'] = self.service_drivers
 
         return ret
 
@@ -58,13 +59,14 @@ class PeriodicPiNode(object):
                 try:
                     loaded_mod_id = driver_manager.load_module(service['service_name'],
                                                                server_address=self.addr.address,
-                                                               server_port=int(service['port']))
+                                                               server_port=int(service['port']),
+                                                               attached_node=self.element)
                 except ModuleAlreadyLoadedError:
                     pass
                 except TypeError:
                     #load without address (not needed)?
                     try:
-                        loaded_mod_id = driver_manager.load_module(service['service_name'])
+                        loaded_mod_id = driver_manager.load_module(service['service_name'], attached_node=self.element)
                     except Exception:
                         #give up
                         raise

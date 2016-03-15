@@ -10,13 +10,29 @@ def make_json_server(drv_manager, node_list):
         nodelist = node_list
 
         @pyjsonrpc.rpcmethod
-        def list_nodes(self):
+        def list_nodes(self, simple=True):
             #build serializable node dictionary and return
             ret = {}
             for node_name, node in self.nodelist.iteritems():
-                ret[node_name] = node.get_serializable_dict()
+                ret[node_name] = node.get_serializable_dict(simple)
 
             return ret
+
+        @pyjsonrpc.rpcmethod
+        def list_drivers(self):
+            return self.drvman.list_loaded_modules()
+
+        @pyjsonrpc.rpcmethod
+        def module_info(self, module_name):
+            return self.drvman.get_module_info(module_name)
+
+        @pyjsonrpc.rpcmethod
+        def module_get_property(self, module_name, property_name):
+            return self.drvman.get_module_property(module_name, property_name)
+
+        @pyjsonrpc.rpcmethod
+        def module_get_property_list(self, module_name):
+            return self.drvman.get_module_property_list(module_name)
 
     return PeriodicPiAggJsonServer
 
