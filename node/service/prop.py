@@ -1,22 +1,23 @@
-from collections import namedtuple
+from node.service.dtype import PPDataTypes
 
 #driver property
-DriverProperty = namedtuple('DriverProperty', ['property_desc',
-                                               'permissions',
-                                               'getter',
-                                               'setter',
-                                               'data_type'])
+class DriverProperty(object):
+    def __init__(self,
+                 property_desc,
+                 permissions=DriverPropertyPermissions.RW,
+                 getter=None,
+                 setter=None,
+                 data_type=PPDataTypes.VOID,
+                 **kwargs):
 
-#data types for completeness
-class PPDataTypes:
-    INT = 0
-    FLOAT = 1
-    STRING = 2
-    VOID = 3
-    INT_LIST = 4
-    FLOAT_LIST = 5
-    STRING_LIST = 6
-    VOID_LIST = 7
+        self.property_desc = property_desc
+        self.permissions = permissions
+        self.getter = getter
+        self.setter = setter
+        self.data_type = data_type
+
+        #hacky hack
+        self.__dict__.update(kwargs)
 
 class DriverPropertyPermissions(object):
     READ = 0
