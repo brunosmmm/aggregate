@@ -6,6 +6,8 @@ import re
 import importlib
 import logging
 from drvman import DriverManager
+from jsonsrv.server import PeriodicPiAggController
+import pyjsonrpc
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 
@@ -79,6 +81,12 @@ if __name__ == "__main__":
     discover_loop = AvahiDiscoverLoop(service_resolved_cb=aggregator.discover_new_node,
                                       service_removed_cb=aggregator.remove_node)
 
+    #JSON server
+    json_server = PeriodicPiAggController(aggregator.drvman, aggregator.active_nodes)
+
     #do stuff
     discover_loop.start()
+    json_server.start()
+
+    json_server.join()
     discover_loop.join()
