@@ -1,5 +1,6 @@
 from node.service.driver import NodeServiceDriver, NodeServiceDriverArgument, DriverCapabilities
-from node.service.prop import DriverProperty, DriverPropertyPermissions, PPDataTypes
+from node.service.prop import DriverProperty, DriverPropertyPermissions
+from node.service.dtype import PPDataTypes
 from drvman.exception import HookNotAvailableError
 from drvman import DriverManagerHookActions
 import re
@@ -16,8 +17,6 @@ class PPNodeDriver(NodeServiceDriver):
                     NodeServiceDriverArgument('name', 'node advertised name')]
     _properties = {'node_element' : DriverProperty('Node identifying element',
                                                    DriverPropertyPermissions.READ,
-                                                   getter=None,
-                                                   setter=None,
                                                    data_type=PPDataTypes.STRING)}
 
 
@@ -32,10 +31,16 @@ class PPNodeDriver(NodeServiceDriver):
         driver_list = self.interrupt_handler('get_available_drivers')
         self.node.register_services(driver_list, kwargs['drvman'])
 
+        #register properties
+        self._register_properties()
+
         #add to active
         self.interrupt_handler(call_custom_hook=['ppagg.add_node', [m.group(1), self.node]])
         #done
         self.interrupt_handler(log_info='new Periodic Pi node: {}'.format(m.group(1)))
+
+    def _register_properties(self):
+        self._properties['node_element'].getter = self.node.get_node_element
 
     @classmethod
     def new_node_detected(cls, **kwargs):
