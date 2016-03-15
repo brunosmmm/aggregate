@@ -20,3 +20,6 @@ class ModuleInvalidPropertyError(Exception):
 
 class ModulePropertyPermissionError(Exception):
     pass
+
+class ModuleMethodError(Exception):
+    pass

@@ -6,7 +6,7 @@
 import importlib
 import logging
 from node.service.driver import NodeServiceDriver, NodeServiceDriverArgument, DriverCapabilities
-from node.service.exception import ModuleLoadError, ModuleAlreadyLoadedError, ModuleNotLoadedError
+from node.service.exception import ModuleLoadError, ModuleAlreadyLoadedError, ModuleNotLoadedError, ModuleMethodError
 from drvman.exception import HookNotAvailableError
 #from jux.module.mixin.control import JMControlMixin
 #from jux.module.mixin.library import JMLibraryMixin
@@ -148,6 +148,21 @@ class DriverManager(object):
     def get_module_property_list(self, module_name):
         if module_name in self.found_modules:
             return self.found_modules[module_name].get_module_properties()
+
+        return None
+
+    def get_module_method_list(self, module_name):
+        if module_name in self.found_modules:
+            return self.found_modules[module_name].get_module_methods()
+
+        return None
+
+    def call_module_method(self, module_name, method_name, **kwargs):
+        if module_name in self.found_modules:
+            try:
+                return self.found_modules[module_name].call_method(method_name, **kwargs)
+            except ModuleMethodError:
+                return None
 
         return None
 

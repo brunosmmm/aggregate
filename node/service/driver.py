@@ -1,5 +1,5 @@
 from collections import namedtuple
-from node.service.exception import ModuleLoadError, ModuleNotLoadedError, ModuleInvalidPropertyError, ModulePropertyPermissionError
+from node.service.exception import ModuleLoadError, ModuleNotLoadedError, ModuleInvalidPropertyError, ModulePropertyPermissionError, ModuleMethodError
 from node.service.prop import DriverPropertyPermissions
 import json
 
@@ -14,8 +14,8 @@ class NodeServiceDriver(object):
     _optional_kw = []
     _module_desc = NodeServiceDriverArgument(None, None)
     _capabilities = []
-    _properties = []
-    _methods = []
+    _properties = {}
+    _methods = {}
     _registered_id = None
     _mod_handler = None
 
@@ -109,6 +109,26 @@ class NodeServiceDriver(object):
 
         return None
 
+    def call_method(self, method_name, **kwargs):
+        if method_name in self._methods:
+            for kwg, m_arg in self._methods[method_name].method_args.iteritems():
+                if m_arg.required and kwg not in kwargs:
+                    #fail, didn't provide required argument
+                    raise ModuleMethodError('missing required argument')
+
+            return_value = None
+            try:
+                return_value = self._methods[method_name].method_call(**kwargs)
+            except Exception:
+                #placeholder
+                raise
+
+        else:
+            raise ModuleMethodError('method {} does not exist'.format(method_name))
+
+        return return_value
+
+
     @classmethod
     def get_module_info(cls):
 
@@ -132,6 +152,21 @@ class NodeServiceDriver(object):
             property_list[property_name] = property_dict
 
         return property_list
+
+    @classmethod
+    def get_module_methods(cls):
+        method_list = {}
+
+        for method_name, method in cls._methods.iteritems():
+            method_dict = {}
+
+            method_dict['method_desc'] = method.method_desc
+            method_dict['method_args'] = None
+            method_dict['method_return'] = None
+
+            method_list[method_name] = method_dict
+
+        return method_list
 
     @classmethod
     def dump_module_structure(cls, json_file):
