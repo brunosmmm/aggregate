@@ -25,9 +25,7 @@ class LircdDriver(NodeServiceDriver):
                                                     method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
                                                                                                       required=True,
                                                                                                       data_type=PPDataTypes.STRING)},
-                                                    method_return=PPDataTypes.STRING_LIST)
-
-    )}
+                                                    method_return=PPDataTypes.STRING_LIST)}
 
     def __init__(self, **kwargs):
         super(LircdDriver, self).__init__(**kwargs)
