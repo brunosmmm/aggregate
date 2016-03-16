@@ -159,10 +159,21 @@ class NodeServiceDriver(object):
 
         for method_name, method in cls._methods.iteritems():
             method_dict = {}
+            arg_list = {}
 
             method_dict['method_desc'] = method.method_desc
-            method_dict['method_args'] = None
-            method_dict['method_return'] = None
+
+            #arguments
+            for arg_name, arg in method.method_args.iteritems():
+                arg_dict = {}
+                arg_dict['arg_desc'] = arg.argument_desc
+                arg_dict['arg_required'] = arg.required
+                arg_dict['arg_dtype'] = arg.data_type
+
+                arg_list[arg_name] = arg_dict
+
+            method_dict['method_args'] = arg_list
+            method_dict['method_return'] = method.method_return
 
             method_list[method_name] = method_dict
 
@@ -170,6 +181,38 @@ class NodeServiceDriver(object):
 
     @classmethod
     def dump_module_structure(cls, json_file):
-        pass
-        #with open(json_file, 'w') as f:
-        #    json.dump(stuff, f)
+        struct_dict = {}
+
+        with open(json_file, 'w') as f:
+            json.dump(struct_dict, f)
+
+
+    def _automap_methods(self, protected_methods=True):
+        for method_name, method in self._methods.iteritems():
+            if protected_methods:
+                method_name = '_' + method_name
+            try:
+                method.method_call = self.__getattribute__(method_name)
+            except AttributeError:
+                #not found
+                pass
+
+    def _automap_properties(self, protected_methods=True):
+        for prop_name, prop in self._properties.iteritems():
+            #search for object methods
+            getter_name = 'get_'
+            setter_name = 'set_'
+            if protected_methods:
+                getter_name = '_'+getter_name
+                setter_name = '_'+setter_name
+
+            try:
+                prop.getter = self.__getattribute__(getter_name+prop_name)
+            except AttributeError:
+                #not found
+                pass
+
+            try:
+                prop.setter = self.__getattribute__(setter_name+prop_name)
+            except AttributeError:
+                pass
