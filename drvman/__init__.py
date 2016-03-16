@@ -137,6 +137,7 @@ class DriverManager(object):
         if module_name in self.found_modules:
             return self.found_modules[module_name].get_module_info()
 
+        self.logger.warn('requested instance "{}" not found'.format(instance_name))
         return None
 
     def get_module_property(self, module_name, property_name):
@@ -149,21 +150,27 @@ class DriverManager(object):
         if module_name in self.found_modules:
             return self.found_modules[module_name].get_module_properties()
 
+        self.logger.warn('requested instance "{}" not found'.format(instance_name))
         return None
 
     def get_module_method_list(self, module_name):
         if module_name in self.found_modules:
             return self.found_modules[module_name].get_module_methods()
 
+        self.logger.warn('requested instance "{}" not found'.format(instance_name))
         return None
 
-    def call_module_method(self, module_name, method_name, **kwargs):
-        if module_name in self.found_modules:
+    def call_module_method(self, instance_name, method_name, **kwargs):
+        if instance_name in self.found_modules:
             try:
-                return self.found_modules[module_name].call_method(method_name, **kwargs)
-            except ModuleMethodError:
+                return self.loaded_modules[instance_name].call_method(method_name, **kwargs)
+            except ModuleMethodError as e:
+                self.logger.warn('call to method "{}" of instance "{}" failed with: "{}"'.format(method_name,
+                                                                                                 instance_name,
+                                                                                                 e.message))
                 return None
 
+        self.logger.warn('requested instance "{}" not found'.format(instance_name))
         return None
 
     def list_loaded_modules(self):
