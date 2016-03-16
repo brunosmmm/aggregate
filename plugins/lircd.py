@@ -25,7 +25,31 @@ class LircdDriver(NodeServiceDriver):
                                                     method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
                                                                                                       required=True,
                                                                                                       data_type=PPDataTypes.STRING)},
-                                                    method_return=PPDataTypes.STRING_LIST)}
+                                                    method_return=PPDataTypes.STRING_LIST),
+                'send_remote_key' : DriverMethod(method_desc='Send a single remote control keypress',
+                                                 method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                                                                                   required=True,
+                                                                                                   data_type=PPDataTypes.STRING),
+                                                              'key_name' : DriverMethodArgument(argument_desc='Key name',
+                                                                                                required=True,
+                                                                                                data_type=PPDataTypes.STRING)}),
+                'start_key_press' : DriverMethod(method_desc='Start sending repeated keypresses',
+                                                 method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                                                                                   required=True,
+                                                                                                   data_type=PPDataTypes.STRING),
+                                                              'key_name' : DriverMethodArgument(argument_desc='Key name',
+                                                                                                required=True,
+                                                                                                data_type=PPDataTypes.STRING),
+                                                              'repeat_count' : DriverMethodArgument(argument_desc='Repeat count',
+                                                                                                    required=False,
+                                                                                                    data_type=PPDataTypes.INT)}),
+                'stop_key_press' : DriverMethod(method_desc='Stop sending repeated keypresses',
+                                                 method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                                                                                   required=True,
+                                                                                                   data_type=PPDataTypes.STRING),
+                                                              'key_name' : DriverMethodArgument(argument_desc='Key name',
+                                                                                                required=True,
+                                                                                                data_type=PPDataTypes.STRING)})}
 
     def __init__(self, **kwargs):
         super(LircdDriver, self).__init__(**kwargs)
@@ -34,23 +58,27 @@ class LircdDriver(NodeServiceDriver):
         self.lirc_handler = LircClient(self._loaded_kwargs['server_address'],
                                        self._loaded_kwargs['server_port'])
 
-        #build property list
-        self._register_properties()
-        #build method list
-        self._register_methods()
+        #automap methods
+        self._automap_methods()
+        #automap properties
+        self._automap_properties()
 
-    def _get_available_remotes(self):
+    def _get_avail_remotes(self):
         """Return available remotes at the location"""
         return self.lirc_handler.get_remote_list()
 
     def _get_remote_actions(self, remote_name):
         return self.lirc_handler.get_remote_key_list(remote_name)
 
-    def _register_properties(self):
-        self._properties['avail_remotes'].getter = self._get_available_remotes
+    def _send_remote_key(self, remote_name, key_name):
+        self.lirc_handler.send_key_once(remote_name, key_name)
 
-    def _register_methods(self):
-        self._methods['get_remote_actions'].method_call = self._get_remote_actions
+    def _start_key_press(self, remote_name, key_name, repeat_count=0):
+        self.lirc_handler.start_send_key(remote_name, key_name, repeat_count)
+
+    def _stop_key_press(self, remote_name, key_name):
+        self.lirc_handler.stop_send_key(remote_name, key_name)
+
 
 def discover_module(*args):
     return LircdDriver
