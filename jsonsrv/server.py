@@ -65,7 +65,7 @@ class PeriodicPiAggController(StoppableThread):
 
         #generate class with references
         json_server_class = make_json_server(self.drv_manager, self.node_list)
-        self.http_server = pyjsonrpc.ThreadingHttpServer(server_address=('localhost', 8080),
+        self.http_server = pyjsonrpc.ThreadingHttpServer(server_address=('', 8080),
                                                          RequestHandlerClass=json_server_class)
 
         self.http_server.serve_forever()
