@@ -82,3 +82,8 @@ class LircdDriver(NodeServiceDriver):
 
 def discover_module(*args):
     return LircdDriver
+
+if __name__ == "__main__":
+
+    #dump json file
+    LircdDriver.dump_module_structure('lircd.json')
