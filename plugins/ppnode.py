@@ -1,5 +1,6 @@
 from periodicpy.plugmgr.plugin import Module, ModuleArgument, ModuleCapabilities
 from periodicpy.plugmgr.plugin.prop import ModuleProperty, ModulePropertyPermissions
+from periodicpy.plugmgr.plugin.method import ModuleMethod, ModuleMethodArgument
 from periodicpy.plugmgr.plugin.dtype import ModuleDataTypes
 from periodicpy.plugmgr.exception import HookNotAvailableError
 from periodicpy.plugmgr import ModuleManagerHookActions
@@ -17,8 +18,22 @@ class PPNodeDriver(Module):
                     ModuleArgument('name', 'node advertised name')]
     _properties = {'node_element' : ModuleProperty('Node identifying element',
                                                    ModulePropertyPermissions.READ,
-                                                   data_type=ModuleDataTypes.STRING)}
+                                                   data_type=ModuleDataTypes.STRING),
+                   'node_plugins' : ModuleProperty('Plugins active at node',
+                                                   ModulePropertyPermissions.READ,
+                                                   data_type=ModuleDataTypes.STRING_LIST)}
 
+    _methods = {'call_plugin_method' : ModuleMethod(method_desc='Call a method provided by a node plugin',
+                                                    method_args={'instance_name' : ModuleMethodArgument(argument_desc='Plugin instance name',
+                                                                                                        required=True,
+                                                                                                        data_type=ModuleDataTypes.STRING),
+                                                                 'method_name' : ModuleMethodArgument(argument_desc='Method name',
+                                                                                                      required=True,
+                                                                                                      data_type=ModuleDataTypes.STRING),
+                                                                 'method_args' : ModuleMethodArgument(argument_desc='Method arguments',
+                                                                                                      required=False,
+                                                                                                      data_type=ModuleDataTypes.DICT)},
+                                                    method_return=ModuleDataTypes.VOID)}
 
     def __init__(self, **kwargs):
         super(PPNodeDriver, self).__init__(**kwargs)
@@ -31,16 +46,26 @@ class PPNodeDriver(Module):
         driver_list = self.interrupt_handler('get_available_drivers')
         self.node.register_services(driver_list, kwargs['drvman'])
 
-        #register properties
-        self._register_properties()
+        #get plugin information, build structures
+
+        #connect properties, methods
+        self._automap_properties()
+        self._automap_methods()
 
         #add to active
         self.interrupt_handler(call_custom_hook=['ppagg.add_node', [m.group(1), self.node]])
         #done
         self.interrupt_handler(log_info='new Periodic Pi node: {}'.format(m.group(1)))
 
-    def _register_properties(self):
-        self._properties['node_element'].getter = self.node.get_node_element
+    #property getter
+    def _get_node_element(self):
+        return self.node.get_node_element()
+
+    def _get_node_plugins(self):
+        return self.node.get_node_plugins()
+
+    def _call_plugin_method(self, instance_name, method_name, method_args=None):
+        return self.node.call_plugin_method(instance_name, method_name, method_args)
 
     @classmethod
     def new_node_detected(cls, **kwargs):
