@@ -1,7 +1,7 @@
-from node.service.driver import NodeServiceDriver, NodeServiceDriverArgument, DriverCapabilities
-from node.service.prop import DriverProperty, DriverPropertyPermissions
-from node.service.dtype import PPDataTypes
-from node.service.method import DriverMethod, DriverMethodArgument
+from periodicpy.plugmgr.plugin import Module, ModuleArgument, ModuleCapabilities
+from periodicpy.plugmgr.plugin.prop import ModuleProperty, ModulePropertyPermissions
+from periodicpy.plugmgr.plugin.dtype import ModuleDataTypes
+from periodicpy.plugmgr.plugin.method import ModuleMethod, ModuleMethodArgument
 from periodicpy.irtools.lirc import LircClient
 
 MODULE_VERSION = '0.1'
@@ -9,47 +9,47 @@ MODULE_VERSION = '0.1'
 def module_version():
     return MODULE_VERSION
 
-class LircdDriver(NodeServiceDriver):
-    _module_desc = NodeServiceDriverArgument('lircd', 'lircd client driver')
-    _capabilities = [DriverCapabilities.MultiInstanceAllowed]
-    _required_kw = [NodeServiceDriverArgument('server_address', 'lircd server address'),
-                    NodeServiceDriverArgument('server_port', 'lircd server port')]
-    _properties = {'version' : DriverProperty(property_desc='Module Version',
-                                              permissions=DriverPropertyPermissions.READ,
+class LircdDriver(Module):
+    _module_desc = ModuleArgument('lircd', 'lircd client driver')
+    _capabilities = [ModuleCapabilities.MultiInstanceAllowed]
+    _required_kw = [ModuleArgument('server_address', 'lircd server address'),
+                    ModuleArgument('server_port', 'lircd server port')]
+    _properties = {'version' : ModuleProperty(property_desc='Module Version',
+                                              permissions=ModulePropertyPermissions.READ,
                                               getter=module_version,
-                                              data_type=PPDataTypes.STRING),
-                   'avail_remotes' : DriverProperty(property_desc='Available Remotes',
-                                                    permissions=DriverPropertyPermissions.READ,
-                                                    data_type=PPDataTypes.STRING_LIST)}
-    _methods = {'get_remote_actions' : DriverMethod(method_desc='Retrieve available remote actions',
-                                                    method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                              data_type=ModuleDataTypes.STRING),
+                   'avail_remotes' : ModuleProperty(property_desc='Available Remotes',
+                                                    permissions=ModulePropertyPermissions.READ,
+                                                    data_type=ModuleDataTypes.STRING_LIST)}
+    _methods = {'get_remote_actions' : ModuleMethod(method_desc='Retrieve available remote actions',
+                                                    method_args={'remote_name' : ModuleMethodArgument(argument_desc='Remote name',
                                                                                                       required=True,
-                                                                                                      data_type=PPDataTypes.STRING)},
-                                                    method_return=PPDataTypes.STRING_LIST),
-                'send_remote_key' : DriverMethod(method_desc='Send a single remote control keypress',
-                                                 method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                                                                                      data_type=ModuleDataTypes.STRING)},
+                                                    method_return=ModuleDataTypes.STRING_LIST),
+                'send_remote_key' : ModuleMethod(method_desc='Send a single remote control keypress',
+                                                 method_args={'remote_name' : ModuleMethodArgument(argument_desc='Remote name',
                                                                                                    required=True,
-                                                                                                   data_type=PPDataTypes.STRING),
-                                                              'key_name' : DriverMethodArgument(argument_desc='Key name',
+                                                                                                   data_type=ModuleDataTypes.STRING),
+                                                              'key_name' : ModuleMethodArgument(argument_desc='Key name',
                                                                                                 required=True,
-                                                                                                data_type=PPDataTypes.STRING)}),
-                'start_key_press' : DriverMethod(method_desc='Start sending repeated keypresses',
-                                                 method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                                                                                data_type=ModuleDataTypes.STRING)}),
+                'start_key_press' : ModuleMethod(method_desc='Start sending repeated keypresses',
+                                                 method_args={'remote_name' : ModuleMethodArgument(argument_desc='Remote name',
                                                                                                    required=True,
-                                                                                                   data_type=PPDataTypes.STRING),
-                                                              'key_name' : DriverMethodArgument(argument_desc='Key name',
+                                                                                                   data_type=ModuleDataTypes.STRING),
+                                                              'key_name' : ModuleMethodArgument(argument_desc='Key name',
                                                                                                 required=True,
-                                                                                                data_type=PPDataTypes.STRING),
-                                                              'repeat_count' : DriverMethodArgument(argument_desc='Repeat count',
+                                                                                                data_type=ModuleDataTypes.STRING),
+                                                              'repeat_count' : ModuleMethodArgument(argument_desc='Repeat count',
                                                                                                     required=False,
-                                                                                                    data_type=PPDataTypes.INT)}),
-                'stop_key_press' : DriverMethod(method_desc='Stop sending repeated keypresses',
-                                                 method_args={'remote_name' : DriverMethodArgument(argument_desc='Remote name',
+                                                                                                    data_type=ModuleDataTypes.INT)}),
+                'stop_key_press' : ModuleMethod(method_desc='Stop sending repeated keypresses',
+                                                 method_args={'remote_name' : ModuleMethodArgument(argument_desc='Remote name',
                                                                                                    required=True,
-                                                                                                   data_type=PPDataTypes.STRING),
-                                                              'key_name' : DriverMethodArgument(argument_desc='Key name',
+                                                                                                   data_type=ModuleDataTypes.STRING),
+                                                              'key_name' : ModuleMethodArgument(argument_desc='Key name',
                                                                                                 required=True,
-                                                                                                data_type=PPDataTypes.STRING)})}
+                                                                                                data_type=ModuleDataTypes.STRING)})}
 
     def __init__(self, **kwargs):
         super(LircdDriver, self).__init__(**kwargs)

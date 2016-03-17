@@ -1,23 +1,23 @@
-from node.service.driver import NodeServiceDriver, NodeServiceDriverArgument, DriverCapabilities
-from node.service.prop import DriverProperty, DriverPropertyPermissions
-from node.service.dtype import PPDataTypes
-from drvman.exception import HookNotAvailableError
-from drvman import DriverManagerHookActions
+from periodicpy.plugmgr.plugin import Module, ModuleArgument, ModuleCapabilities
+from periodicpy.plugmgr.plugin.prop import ModuleProperty, ModulePropertyPermissions
+from periodicpy.plugmgr.plugin.dtype import ModuleDataTypes
+from periodicpy.plugmgr.exception import HookNotAvailableError
+from periodicpy.plugmgr import ModuleManagerHookActions
 import re
 from node.node import PeriodicPiNode
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 
 #this node driver is just a gateway; other drivers are loaded once node discovery is finished
-class PPNodeDriver(NodeServiceDriver):
-    _module_desc = NodeServiceDriverArgument('ppnode', 'PeriodicPi node driver')
-    _capabilities = [DriverCapabilities.MultiInstanceAllowed]
-    _required_kw = [NodeServiceDriverArgument('address', 'node address'),
-                    NodeServiceDriverArgument('port', 'node port'),
-                    NodeServiceDriverArgument('name', 'node advertised name')]
-    _properties = {'node_element' : DriverProperty('Node identifying element',
-                                                   DriverPropertyPermissions.READ,
-                                                   data_type=PPDataTypes.STRING)}
+class PPNodeDriver(Module):
+    _module_desc = ModuleArgument('ppnode', 'PeriodicPi node driver')
+    _capabilities = [ModuleCapabilities.MultiInstanceAllowed]
+    _required_kw = [ModuleArgument('address', 'node address'),
+                    ModuleArgument('port', 'node port'),
+                    ModuleArgument('name', 'node advertised name')]
+    _properties = {'node_element' : ModuleProperty('Node identifying element',
+                                                   ModulePropertyPermissions.READ,
+                                                   data_type=ModuleDataTypes.STRING)}
 
 
     def __init__(self, **kwargs):
@@ -57,7 +57,7 @@ def discover_module(module_manager_object):
     try:
         module_manager_object.install_driver_hook('drvman.new_node',
                                                   PPNodeDriver.new_node_detected,
-                                                  DriverManagerHookActions.LOAD_MODULE,
+                                                  ModuleManagerHookActions.LOAD_MODULE,
                                                   PPNodeDriver)
     except HookNotAvailableError:
         raise

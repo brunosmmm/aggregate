@@ -1,10 +1,10 @@
-from node.service.driver import NodeServiceDriver, NodeServiceDriverArgument, DriverCapabilities
+from periodicpy.plugmgr.plugin import Module, ModuleArgument, ModuleCapabilities
 
-class SnapClientDriver(NodeServiceDriver):
+class SnapClientDriver(Module):
     """SnapCast client dummy driver only for display purposes"""
-    _module_desc = NodeServiceDriverArgument('snapclient',
+    _module_desc = ModuleArgument('snapclient',
                                              'SnapCast client dummy driver')
-    _capabilities = [DriverCapabilities.MultiInstanceAllowed]
+    _capabilities = [ModuleCapabilities.MultiInstanceAllowed]
 
     def __init__(self, **kwargs):
         super(SnapClientDriver, self).__init__(**kwargs)
