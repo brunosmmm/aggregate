@@ -5,7 +5,7 @@ import avahi
 import re
 import importlib
 import logging
-from drvman import DriverManager
+from periodicpy.plugmgr import ModuleManager
 from jsonsrv.server import PeriodicPiAggController
 import pyjsonrpc
 from periodicpy.zeroconf import ZeroconfService
@@ -24,7 +24,7 @@ class PeriodicPiAgg(object):
 
         self.logger = logging.getLogger('ppagg.ctrl')
 
-        self.drvman = DriverManager('ppagg')
+        self.drvman = ModuleManager('ppagg', 'plugins')
         self.available_drivers = []
         for driver in self.drvman.list_discovered_modules():
             self.available_drivers.append(driver.arg_name)

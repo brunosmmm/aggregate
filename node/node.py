@@ -1,7 +1,7 @@
 from util.misc import NodeAddress
 from scan import scan_new_node, scan_node_services
 import logging
-from service.exception import ModuleAlreadyLoadedError
+from periodicpy.plugmgr.plugin.exception import ModuleAlreadyLoadedError
 
 class NodeElementError(Exception):
     pass
