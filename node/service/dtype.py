@@ -8,3 +8,4 @@ class PPDataTypes:
     FLOAT_LIST = 5
     STRING_LIST = 6
     VOID_LIST = 7
+    BOOLEAN = 8
