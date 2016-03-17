@@ -182,6 +182,9 @@ class NodeServiceDriver(object):
     @classmethod
     def dump_module_structure(cls, json_file):
         struct_dict = {}
+        struct_dict['module_desc'] = cls.get_module_info()
+        struct_dict['module_properties'] = cls.get_module_properties()
+        struct_dict['module_methods'] = cls.get_module_methods()
 
         with open(json_file, 'w') as f:
             json.dump(struct_dict, f)
