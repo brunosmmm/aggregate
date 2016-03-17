@@ -17,9 +17,10 @@ class DuplicateNodeError(Exception):
     pass
 
 class PeriodicPiAgg(object):
-    def __init__(self, filter_iface=None):
+    def __init__(self, filter_iface=None, aggregator_element='lithium'):
         self.active_nodes = {}
         self.listen_iface = filter_iface
+        self.agg_element = aggregator_element
 
         self.logger = logging.getLogger('ppagg.ctrl')
 
@@ -73,7 +74,7 @@ class PeriodicPiAgg(object):
 
     def _publish_aggregator(self):
         self.logger.debug('publishing aggregator service')
-        self.avahi_service = ZeroconfService(name='PeriodicPi Aggregator',
+        self.avahi_service = ZeroconfService(name='PeriodicPi Aggregator [{}]'.format(self.agg_element),
                                              port=8080,
                                              stype='_http._tcp')
         self.avahi_service.publish()
