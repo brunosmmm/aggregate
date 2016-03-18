@@ -42,13 +42,18 @@ class PeriodicPiNode(object):
             if arg not in module_methods[method_name]['method_args']:
                 return None #invalid argument
 
-        for arg in module_methods[method_name]['method_args']:
-            if arg['arg_required'] == True and arg not in method_args:
+        for arg_name, arg in module_methods[method_name]['method_args'].iteritems():
+            if arg['arg_required'] == True and arg_name not in method_args:
                 return None #missing required argument
+
+        #bottle not linking nested dictionaries, undo method_args dictionary
+        arg_pairs = []
+        for arg_name, arg in method_args.iteritems():
+            arg_pairs.append('{}={}'.format(arg_name, arg))
 
         #call (post)
         try:
-            ret = post_json_data(self.addr, 'plugins/{}/{}'.format(instance_name, method_name), method_args)
+            ret = post_json_data(self.addr, 'plugins/{}/{}'.format(instance_name, method_name), {'method_args' : ','.join(arg_pairs)})
         except NodeScanError:
             return None #error while calling
 

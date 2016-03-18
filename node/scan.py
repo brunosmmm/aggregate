@@ -24,7 +24,7 @@ def retrieve_json_data(node_address, path):
 
 def post_json_data(node_address, path, data):
 
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+    headers = {'content-type': 'application/json', 'Accept': 'text/plain'}
     r = requests.post(get_full_node_address(node_address)+path, data=data, headers=headers)
 
     if r.ok == False:
