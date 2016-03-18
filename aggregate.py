@@ -48,8 +48,8 @@ class PeriodicPiAgg(object):
 
         self.logger.info('Aggregator starting up...')
         #setup service discovery loop
-        self.discover_loop = AvahiDiscoverLoop(service_resolved_cb=aggregator.discover_new_node,
-                                               service_removed_cb=aggregator.remove_node)
+        self.discover_loop = AvahiDiscoverLoop(service_resolved_cb=self.discover_new_node,
+                                               service_removed_cb=self.remove_node)
 
         #setup json server
         self.json_server = PeriodicPiAggController(self.drvman, self.active_nodes)
