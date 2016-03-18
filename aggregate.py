@@ -77,6 +77,9 @@ class PeriodicPiAgg(object):
         self.json_server.stop()
         self.json_server.join()
 
+    def module_tick(self):
+        self.drvman.module_system_tick()
+
     def _unpublish_aggregator(self):
         self.avahi_service.unpublish()
 
@@ -140,6 +143,7 @@ if __name__ == "__main__":
     #wait forever
     while True:
         try:
+            aggregator.module_tick()
             time.sleep(1)
         except KeyboardInterrupt:
             _handle_signal(None)
