@@ -25,12 +25,20 @@ class PeriodicPiAgg(object):
         self.logger = logging.getLogger('ppagg.ctrl')
 
         self.drvman = ModuleManager('ppagg', 'plugins')
+
+        #install custom method
+        self.drvman.install_custom_method('ppagg.add_node', self.add_active_node)
+
+        #install custom hooks
+        self.drvman.install_custom_hook('ppagg.node_discovered')
+        self.drvman.install_custom_hook('ppagg.node_removed')
+
+        #discover modules
+        self.logger.info('Initial plugin scan')
+        self.drvman.discover_modules()
         self.available_drivers = []
         for driver in self.drvman.list_discovered_modules():
             self.available_drivers.append(driver.arg_name)
-
-        #install custom hook
-        self.drvman.install_custom_hook('ppagg.add_node', self.add_active_node)
 
         #service discover loop
         self.discover_loop = None
@@ -99,13 +107,13 @@ class PeriodicPiAgg(object):
                 return
 
         self.logger.debug('discovered new service: {}'.format(kwargs['name']))
-
-        self.drvman.new_node_discovered_event(**kwargs)
+        self.drvman.trigger_custom_hook('ppagg.node_discovered', **kwargs)
 
     def remove_node(self, **kwargs):
 
         #search and remove node
-        pass
+        self.logger.debug('service was removed: {}'.format(kwargs['name']))
+        self.drvman.trigger_custom_hook('ppagg.node_removed', **kwargs)
 
 if __name__ == "__main__":
 
