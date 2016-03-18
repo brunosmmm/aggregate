@@ -97,6 +97,8 @@ class PeriodicPiNode(object):
             self.node_plugin_structure[kind] = retrieve_json_data(self.addr,
                                                                   'plugins/{}/structure'.format(kind))
 
+            self.logger.debug('discovered node-side plugin class: {}'.format(kind))
+
     def register_services(self, available_drivers, driver_manager):
 
         scan_result = scan_node_services(self.addr)
