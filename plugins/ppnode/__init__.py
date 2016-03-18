@@ -49,7 +49,7 @@ class PPNodeDriver(Module):
 
         #get available drivers
         driver_list = self.interrupt_handler('get_available_drivers')
-        self.node.register_services(driver_list, kwargs['plugmgr'])
+        self.node.register_services(driver_list, self.interrupt_handler)
 
         #get plugin information, build structures
         self.node.register_node_plugins()
@@ -57,6 +57,12 @@ class PPNodeDriver(Module):
         #connect properties, methods
         self._automap_properties()
         self._automap_methods()
+
+        #attach to node removed hook
+        self.interrupt_handler(attach_custom_hook=['ppagg.node_removed',
+                                                   [self._node_removed,
+                                                    ModuleManagerHookActions.UNLOAD_MODULE,
+                                                    self._registered_id]])
 
         #add to active
         self.interrupt_handler(call_custom_method=['ppagg.add_node', [m.group(1), self.node]])
@@ -75,6 +81,19 @@ class PPNodeDriver(Module):
 
     def _inspect_plugin(self, instance_name):
         return self.node.get_node_plugin_structure(instance_name)
+
+    def _node_removed(self, **kwargs):
+        m = PERIODIC_PI_NODE_REGEX.match(kwargs['name'])
+
+        if m == None:
+            return False
+
+        if m.group(1) == self._get_node_element():
+            #got removed
+            self.node.unregister_services(self.interrupt_handler)
+            return True
+
+        return False
 
     @classmethod
     def new_node_detected(cls, **kwargs):
