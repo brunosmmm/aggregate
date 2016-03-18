@@ -40,8 +40,8 @@ def make_json_server(drv_manager, node_list):
             return self.drvman.get_module_method_list(module_name)
 
         @pyjsonrpc.rpcmethod
-        def module_call_method(self, module_name, method_name, **kwargs):
-            return self.drvman.call_module_method(module_name, method_name, **kwargs)
+        def module_call_method(self, __module_name, __method_name, **kwargs):
+            return self.drvman.call_module_method(__module_name, __method_name, **kwargs)
 
     return PeriodicPiAggJsonServer
 
