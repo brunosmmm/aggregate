@@ -11,5 +11,5 @@ class SnapClientDriver(Module):
 
         #don't do anything!
 
-def discover_module(*args):
+def discover_module(**kwargs):
     return SnapClientDriver

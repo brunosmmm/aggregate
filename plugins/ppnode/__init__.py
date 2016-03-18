@@ -86,13 +86,13 @@ class PPNodeDriver(Module):
         return True
 
 
-def discover_module(module_manager_object):
+def discover_module(**kwargs):
     #install driver loading hook
     try:
-        module_manager_object.attach_custom_hook('ppagg.node_discovered',
-                                                  PPNodeDriver.new_node_detected,
-                                                  ModuleManagerHookActions.LOAD_MODULE,
-                                                  PPNodeDriver)
+        kwargs['modman'].attach_custom_hook('ppagg.node_discovered',
+                                            PPNodeDriver.new_node_detected,
+                                            ModuleManagerHookActions.LOAD_MODULE,
+                                            PPNodeDriver)
     except HookNotAvailableError:
         raise
 
