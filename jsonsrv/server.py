@@ -43,6 +43,10 @@ def make_json_server(drv_manager, node_list):
         def module_call_method(self, __module_name, __method_name, **kwargs):
             return self.drvman.call_module_method(__module_name, __method_name, **kwargs)
 
+        @pyjsonrpc.rpcmethod
+        def server_interrupt(self, interrupt_key, **kwargs):
+            return self.drvman.external_interrupt(interrupt_key, **kwargs)
+
     return PeriodicPiAggJsonServer
 
 class PeriodicPiAggController(StoppableThread):
