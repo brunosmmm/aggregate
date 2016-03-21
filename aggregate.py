@@ -26,12 +26,15 @@ class PeriodicPiAgg(object):
 
         self.drvman = ModuleManager('ppagg', 'plugins')
 
-        #install custom method
+        #install custom methods
         self.drvman.install_custom_method('ppagg.add_node', self.add_active_node)
+        self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
 
         #install custom hooks
         self.drvman.install_custom_hook('ppagg.node_discovered')
         self.drvman.install_custom_hook('ppagg.node_removed')
+        self.drvman.install_custom_hook('ppagg.agg_started')
+        self.drvman.install_custom_hook('ppagg.agg_stopped')
 
         #discover modules
         self.logger.info('Initial plugin scan')
@@ -62,11 +65,18 @@ class PeriodicPiAgg(object):
         #start json server
         self.json_server.start()
 
+        #trigger start hook
+        self.drvman.trigger_custom_hook('ppagg.agg_started', address='', port=80)
+
         self.logger.info('Aggregator successfully started')
 
     def shutdown(self):
 
         self.logger.info('Agregator shutting down...')
+
+        #trigger stop hook
+        self.drvman.trigger_custom_hook('ppagg.agg_stopped')
+
         #unpublish aggregator
         self._unpublish_aggregator()
         #wait for discovery loop to shutdown
@@ -117,6 +127,9 @@ class PeriodicPiAgg(object):
         #search and remove node
         self.logger.debug('service was removed: {}'.format(kwargs['name']))
         self.drvman.trigger_custom_hook('ppagg.node_removed', **kwargs)
+
+    def get_server_address(self):
+        return { 'address' : '', 'port' : 80 }
 
 if __name__ == "__main__":
 

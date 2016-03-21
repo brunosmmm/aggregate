@@ -19,6 +19,18 @@ class PeriodicPiNode(object):
 
         self.logger = logging.getLogger('ppagg.node-{}'.format(node_element))
 
+        self.agg_running = False
+        self.agg_port = 80
+        self.agg_address = ''
+
+    def agg_startup(self, **kwargs):
+        self.agg_running = True
+        self.agg_port = kwargs['agg_port']
+        self.agg_address = kwargs['agg_address']
+
+    def agg_shutdown(self):
+        self.agg_running = False
+
     def get_node_element(self):
         return self.element
 
@@ -100,6 +112,14 @@ class PeriodicPiNode(object):
             self.logger.debug('discovered node-side plugin class: {}'.format(kind))
 
     def register_services(self, available_drivers, driver_manager):
+
+        self.agg_running = True
+        agg_addr = driver_manager(call_custom_method=['ppagg.get_addr', []])
+        #attach interrupt on node side
+        #status = post_json_data(self.addr, 'control/agg/register', {'agg_addr' : self.agg_address,
+        #                                                            'agg_port' : self.agg_port,
+        #                                                            'handler_name' : '{}pp.inthandler'.format(self.element),
+        #                                                            'handler_path' : 'server_interrupt'})
 
         scan_result = scan_node_services(self.addr)
         self.scanned_services = dict(scan_result)

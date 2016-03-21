@@ -58,14 +58,29 @@ class PPNodeDriver(Module):
         self._automap_properties()
         self._automap_methods()
 
-        #attach to node removed hook
+        #attach to custom aggregator hooks
         self.interrupt_handler(attach_custom_hook=['ppagg.node_removed',
                                                    [self._node_removed,
                                                     ModuleManagerHookActions.UNLOAD_MODULE,
                                                     self._registered_id]])
 
+        self.interrupt_handler(attach_custom_hook=['ppagg.agg_started',
+                                                   [self._agg_started,
+                                                    ModuleManagerHookActions.NO_ACTION,
+                                                    None]])
+
+        self.interrupt_handler(attach_custom_hook=['ppagg.agg_stopped',
+                                                   [self._agg_stopped,
+                                                    ModuleManagerHookActions.NO_ACTION,
+                                                    None]])
+
+        #install external interrupt handler
+        self.interrupt_handler(install_interrupt_handler=['{}pp.inthandler'.format(m.group(1)),
+                                                          self._node_interrupt_handler])
+
         #add to active
         self.interrupt_handler(call_custom_method=['ppagg.add_node', [m.group(1), self.node]])
+
         #done
         self.interrupt_handler(log_info='new Periodic Pi node: {}'.format(m.group(1)))
 
@@ -94,6 +109,15 @@ class PPNodeDriver(Module):
             return True
 
         return False
+
+    def _node_interrupt_handler(self, **kwargs):
+        pass # for now
+
+    def _agg_started(self, **kwargs):
+        self.node.agg_startup(**kwargs)
+
+    def _agg_stopped(self):
+        self.node.agg_shutdown()
 
     @classmethod
     def new_node_detected(cls, **kwargs):
