@@ -10,6 +10,7 @@ from jsonsrv.server import PeriodicPiAggController
 import pyjsonrpc
 from periodicpy.zeroconf import ZeroconfService
 import time
+import socket
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 
@@ -129,7 +130,7 @@ class PeriodicPiAgg(object):
         self.drvman.trigger_custom_hook('ppagg.node_removed', **kwargs)
 
     def get_server_address(self):
-        return { 'address' : '', 'port' : 80 }
+        return { 'address' : socket.gethostname(), 'port' : 80 }
 
 if __name__ == "__main__":
 

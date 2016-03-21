@@ -116,10 +116,10 @@ class PeriodicPiNode(object):
         self.agg_running = True
         agg_addr = driver_manager(call_custom_method=['ppagg.get_addr', []])
         #attach interrupt on node side
-        #status = post_json_data(self.addr, 'control/agg/register', {'agg_addr' : self.agg_address,
-        #                                                            'agg_port' : self.agg_port,
-        #                                                            'handler_name' : '{}pp.inthandler'.format(self.element),
-        #                                                            'handler_path' : 'server_interrupt'})
+        status = post_json_data(self.addr, 'control/agg/register', {'agg_addr' : self.agg_address,
+                                                                    'agg_port' : self.agg_port,
+                                                                    'handler_name' : '{}pp.inthandler'.format(self.element),
+                                                                    'handler_path' : 'server_interrupt'})
 
         scan_result = scan_node_services(self.addr)
         self.scanned_services = dict(scan_result)
