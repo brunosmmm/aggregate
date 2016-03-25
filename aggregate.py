@@ -13,6 +13,8 @@ import time
 import socket
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
+IPV4_REGEX = re.compile(r'(([0-9]{0,3})\.){3}[0-9]{0,3}')
+IPV6_REGEX = re.compile(r'[0-9a-fA-F]{0,4}::(([0-9a-fA-F]{0,4}):){3}[0-9a-fA-F]{0,4}')
 
 class DuplicateNodeError(Exception):
     pass
@@ -29,6 +31,7 @@ class PeriodicPiAgg(object):
 
         #install custom methods
         self.drvman.install_custom_method('ppagg.add_node', self.add_active_node)
+        self.drvman.install_custom_method('ppagg.del_node', self.del_active_node)
         self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
 
         #install custom hooks
@@ -105,12 +108,24 @@ class PeriodicPiAgg(object):
         if node_name in self.active_nodes:
             raise DuplicateNodeError('node is already active')
 
+        self.logger.debug('adding node "{}" to the active node list'.format(node_name))
         self.active_nodes[node_name] = node_object
+
+    def del_active_node(self, node_name):
+        if node_name not in self.active_nodes:
+            self.logger.warn('node "{}" is not present'.format(node_name))
+            return
+
+        self.logger.debug('removing node "{}" from the active node list'.format(node_name))
+        del self.active_nodes[node_name]
 
     def discover_new_node(self, **kwargs):
         #filter out uninteresting stuff
         #no IPv6
         if kwargs['proto'] != avahi.PROTO_INET:
+            return
+
+        if IPV6_REGEX.match(kwargs['address']):
             return
 
         if kwargs['kind'] != '_http._tcp':

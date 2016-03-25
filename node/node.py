@@ -138,7 +138,8 @@ class PeriodicPiNode(object):
                 self.logger.debug('driver for "{}" is available'.format(service['service_name']))
                 try:
                     loaded_mod_id = driver_manager(load_module=[service['service_name'],
-                                                                {'server_address':self.addr.address,
+                                                                {'instance_suffix':self.element,
+                                                                 'server_address':self.addr.address,
                                                                  'server_port':int(service['port']),
                                                                  'attached_node':self.element}])
                 except ModuleAlreadyLoadedError:
@@ -146,7 +147,8 @@ class PeriodicPiNode(object):
                 except TypeError:
                     #load without address (not needed)?
                     try:
-                        loaded_mod_id = driver_manager(load_module=[service['service_name'], {'attached_node':self.element}])
+                        loaded_mod_id = driver_manager(load_module=[service['service_name'], {'instance_suffix':self.element,
+                                                                                              'attached_node':self.element}])
                     except Exception:
                         #give up
                         raise
@@ -157,7 +159,11 @@ class PeriodicPiNode(object):
             #save module information
             self.service_drivers[service['service_name']] = loaded_mod_id
 
+    def handler_int(self, **kwargs):
+        self.logger.debug('received interrupt from module handler: {}'.format(kwargs))
+
     def unregister_services(self, driver_manager):
+        self.logger.debug('module was removed, start unloading modules')
         for loaded_module in self.service_drivers.values():
             try:
                 driver_manager(unload_module=[loaded_module])
