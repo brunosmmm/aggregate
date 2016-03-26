@@ -32,6 +32,10 @@ def make_json_server(drv_manager, node_list):
             return self.drvman.get_module_property(module_name, property_name)
 
         @pyjsonrpc.rpcmethod
+        def module_set_property(self, module_name, property_name, value):
+            return self.drvman.set_module_property(module_name, property_name, value)
+
+        @pyjsonrpc.rpcmethod
         def module_get_property_list(self, module_name):
             return self.drvman.get_module_property_list(module_name)
 
