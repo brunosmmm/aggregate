@@ -34,11 +34,11 @@ class LircdDriver(Module):
     def _get_remote_actions(self, remote_name):
         return self.lirc_handler.get_remote_key_list(remote_name)
 
-    def _send_remote_key(self, remote_name, key_name):
-        self.lirc_handler.send_key_once(remote_name, key_name)
+    def _send_remote_key(self, remote_name, key_name, repeat_count=0):
+        self.lirc_handler.send_key_once(remote_name, key_name, repeat_count)
 
-    def _start_key_press(self, remote_name, key_name, repeat_count=0):
-        self.lirc_handler.start_send_key(remote_name, key_name, repeat_count)
+    def _start_key_press(self, remote_name, key_name):
+        self.lirc_handler.start_send_key(remote_name, key_name)
 
     def _stop_key_press(self, remote_name, key_name):
         self.lirc_handler.stop_send_key(remote_name, key_name)
