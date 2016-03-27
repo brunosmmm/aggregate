@@ -169,6 +169,9 @@ if __name__ == "__main__":
     #do stuff
     aggregator.startup()
 
+    #disable annoying log messages
+    logging.getLogger("requests").setLevel(logging.WARNING)
+
     #wait forever
     while True:
         try:
