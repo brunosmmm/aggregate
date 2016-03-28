@@ -31,6 +31,7 @@ class PeriodicPiAgg(object):
 
         #install custom methods
         self.drvman.install_custom_method('ppagg.add_node', self.add_active_node)
+        self.drvman.install_custom_method('ppagg.get_nodes', self.get_active_nodes)
         self.drvman.install_custom_method('ppagg.del_node', self.del_active_node)
         self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
 
@@ -103,6 +104,9 @@ class PeriodicPiAgg(object):
                                              port=8080,
                                              stype='_http._tcp')
         self.avahi_service.publish()
+
+    def get_active_nodes(self):
+        return self.active_nodes.keys()
 
     def add_active_node(self, node_name, node_object):
         if node_name in self.active_nodes:

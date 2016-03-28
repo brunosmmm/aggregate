@@ -53,7 +53,7 @@ class AvahiDiscoverLoop(StoppableThread):
                                 text=get_service_text_list(args[9]))
 
         def _error_cb(*args):
-            print args
+            print 'ERROR: {}'.format(args)
 
         def _item_remove_event(interface, protocol, name, stype, domain, flags):
             if flags & avahi.LOOKUP_RESULT_LOCAL:

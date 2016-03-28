@@ -9,6 +9,9 @@ from node.node import PeriodicPiNode
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 
+class PPNodeDriverLoadError(Exception):
+    pass
+
 #this node driver is just a gateway; other drivers are loaded once node discovery is finished
 class PPNodeDriver(Module):
     _module_desc = ModuleArgument('ppnode', 'PeriodicPi node driver')
@@ -44,6 +47,11 @@ class PPNodeDriver(Module):
         super(PPNodeDriver, self).__init__(**kwargs)
 
         m = PERIODIC_PI_NODE_REGEX.match(kwargs['name'])
+
+        #check if node is already registered
+        if m.group(1) in self.interrupt_handler(call_custom_method=['ppagg.get_nodes', []]):
+            raise PPNodeDriverLoadError('node is already active, not loading another module')
+
         self.node = PeriodicPiNode(m.group(1), [kwargs['address'], kwargs['port']])
         self.node.register_basic_information()
 
@@ -79,7 +87,7 @@ class PPNodeDriver(Module):
                                                           self._node_interrupt_handler])
 
         #add to active
-        self.interrupt_handler(call_custom_method=['ppagg.add_node', [m.group(1), self.node]])
+        self.interrupt_handler(call_custom_method=['ppagg.add_node', [m.group(1), [self.node]]])
 
         #done
         self.interrupt_handler(log_info='new Periodic Pi node: {}'.format(m.group(1)))
@@ -103,7 +111,7 @@ class PPNodeDriver(Module):
         if m == None:
             return False
 
-        if m.group(1) == self._get_node_element():
+        if m.group(1) == self._get_node_element() and kwargs['address'] == self._loaded_kwargs['address']:
             #got removed
             self.node.unregister_services(self.interrupt_handler)
             self.interrupt_handler(call_custom_method=['ppagg.del_node', [self._get_node_element()]])
