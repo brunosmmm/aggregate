@@ -3,6 +3,7 @@ from dbus import DBusException
 from dbus.mainloop.glib import DBusGMainLoop
 from util.thread import StoppableThread
 import signal
+import logging
 
 def get_service_text_list(byte_array):
     if byte_array.signature != 'ay':
@@ -20,16 +21,14 @@ def get_service_text_list(byte_array):
 
 
 class AvahiDiscoverLoop(StoppableThread):
-    def __init__(self, service_resolved_cb=None, service_removed_cb=None, type_filter=None):
+    def __init__(self, root_logger, service_resolved_cb=None, service_removed_cb=None, type_filter=None):
         super(AvahiDiscoverLoop, self).__init__()
         self.resolve_cb = service_resolved_cb
         self.remove_cb = service_removed_cb
         self.main_loop = None
 
-        if type_filter == None:
-            self.type_filter = ['_http._tcp']
-        else:
-            self.type_filter = type_filter
+        self.type_filter = type_filter
+        self.logger = logging.getLogger('{}.discoverLoop'.format(root_logger))
 
         #make sure that gobject is OK with threads
         gobject.threads_init()
@@ -37,6 +36,7 @@ class AvahiDiscoverLoop(StoppableThread):
     def stop(self):
         super(AvahiDiscoverLoop, self).stop()
         self.main_loop.quit()
+
 
     def run(self):
 
@@ -53,7 +53,7 @@ class AvahiDiscoverLoop(StoppableThread):
                                 text=get_service_text_list(args[9]))
 
         def _error_cb(*args):
-            print 'ERROR: {}'.format(args)
+            print self.logger.error('error resolving service: {}'.format(args))
 
         def _item_remove_event(interface, protocol, name, stype, domain, flags):
             if flags & avahi.LOOKUP_RESULT_LOCAL:
@@ -67,9 +67,9 @@ class AvahiDiscoverLoop(StoppableThread):
                                name=str(name))
 
         def _item_new_event(interface, protocol, name, stype, domain, flags):
-            if flags & avahi.LOOKUP_RESULT_LOCAL:
-                # local service, skip
-                return
+            #if flags & avahi.LOOKUP_RESULT_LOCAL:
+            #    # local service, skip
+            #    return
 
             server.ResolveService(interface, protocol, name, stype,
                                   domain, avahi.PROTO_UNSPEC, dbus.UInt32(0),
@@ -83,12 +83,13 @@ class AvahiDiscoverLoop(StoppableThread):
 
         #register several kinds of service
         for service_type in self.type_filter:
+            self.logger.debug('registering callbacks for service type "{}"'.format(service_type))
             sbrowser = dbus.Interface(bus.get_object(avahi.DBUS_NAME,
-                                                     server.ServiceBrowserNew(avahi.IF_UNSPEC,
-                                                                              avahi.PROTO_UNSPEC,
-                                                                              service_type,
-                                                                              'local',
-                                                                              dbus.UInt32(0))),
+                                                    server.ServiceBrowserNew(avahi.IF_UNSPEC,
+                                                                             avahi.PROTO_UNSPEC,
+                                                                             service_type,
+                                                                             'local',
+                                                                             dbus.UInt32(0))),
                                       avahi.DBUS_INTERFACE_SERVICE_BROWSER)
 
             #connect new item signal
