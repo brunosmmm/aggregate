@@ -1,0 +1,39 @@
+{
+    "module_methods": {},
+    "module_properties": {
+        "volume": {
+            "permissions": 2,
+            "data_type": 2,
+            "property_desc": "Main Zone Volume"
+        },
+        "volume2": {
+            "permissions": 2,
+            "data_type": 2,
+            "property_desc": "Zone 2 Volume"
+        },
+        "main_on": {
+            "permissions": 2,
+            "data_type": 2,
+            "property_desc": "Main zone ON/OFF"
+        },
+        "zone_on": {
+            "permissions": 2,
+            "data_type": 2,
+            "property_desc": "Zone 2 ON/OFF"
+        },
+        "zone_input": {
+            "permissions": 0,
+            "data_type": 2,
+            "property_desc": "Zone 2 Source"
+        },
+        "main_input": {
+            "permissions": 0,
+            "data_type": 2,
+            "property_desc": "Main zone Source"
+        }
+    },
+    "module_desc": {
+        "module_type" : "yrx",
+        "module_desc": "Yamaha receiver driver"
+  }
+}
