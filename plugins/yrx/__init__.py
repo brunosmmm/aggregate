@@ -56,7 +56,7 @@ class YRXNodeDriver(Module):
         if m == None:
             return False
 
-        if self.identifier == m.group(1) and kwargs['address'] == self._loaded_kwargs['address']:
+        if self.identifier == m.group(1):
             _ACTIVE_RECEIVER_LIST.remove(m.group(1))
             return True
 

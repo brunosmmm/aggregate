@@ -111,7 +111,7 @@ class PPNodeDriver(Module):
         if m == None:
             return False
 
-        if m.group(1) == self._get_node_element() and kwargs['address'] == self._loaded_kwargs['address']:
+        if m.group(1) == self._get_node_element():
             #got removed
             self.node.unregister_services(self.interrupt_handler)
             self.interrupt_handler(call_custom_method=['ppagg.del_node', [self._get_node_element()]])
