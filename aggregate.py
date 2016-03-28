@@ -24,6 +24,8 @@ class PeriodicPiAgg(object):
         self.active_nodes = {}
         self.listen_iface = filter_iface
         self.agg_element = aggregator_element
+        self.running = False
+        self.service_types = set(['_http._tcp'])
 
         self.logger = logging.getLogger('ppagg.ctrl')
 
@@ -34,6 +36,7 @@ class PeriodicPiAgg(object):
         self.drvman.install_custom_method('ppagg.get_nodes', self.get_active_nodes)
         self.drvman.install_custom_method('ppagg.del_node', self.del_active_node)
         self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
+        self.drvman.install_custom_method('ppagg.add_service_kind', self.add_service_kind)
 
         #install custom hooks
         self.drvman.install_custom_hook('ppagg.node_discovered')
@@ -56,8 +59,10 @@ class PeriodicPiAgg(object):
 
         self.logger.info('Aggregator starting up...')
         #setup service discovery loop
-        self.discover_loop = AvahiDiscoverLoop(service_resolved_cb=self.discover_new_node,
-                                               service_removed_cb=self.remove_node)
+        self.discover_loop = AvahiDiscoverLoop(root_logger='ppagg',
+                                               service_resolved_cb=self.discover_new_node,
+                                               service_removed_cb=self.remove_node,
+                                               type_filter=self.service_types)
 
         #setup json server
         self.json_server = PeriodicPiAggController(self.drvman, self.active_nodes)
@@ -74,6 +79,7 @@ class PeriodicPiAgg(object):
         self.drvman.trigger_custom_hook('ppagg.agg_started', address='', port=80)
 
         self.logger.info('Aggregator successfully started')
+        self.running = True
 
     def shutdown(self):
 
@@ -107,6 +113,15 @@ class PeriodicPiAgg(object):
 
     def get_active_nodes(self):
         return self.active_nodes.keys()
+
+    def add_service_kind(self, service_kind):
+        #for simplicity sake, only allow to insert types before startup (for now)
+        if self.running:
+            return False
+
+        self.logger.debug('adding service type "{}" to scan filter'.format(service_kind))
+        self.service_types.add(service_kind)
+        return True
 
     def add_active_node(self, node_name, node_object):
         if node_name in self.active_nodes:
@@ -143,6 +158,9 @@ class PeriodicPiAgg(object):
         self.drvman.trigger_custom_hook('ppagg.node_discovered', **kwargs)
 
     def remove_node(self, **kwargs):
+        #no IPv6
+        if kwargs['proto'] != avahi.PROTO_INET:
+            return
 
         #search and remove node
         self.logger.debug('service was removed: {}'.format(kwargs['name']))
