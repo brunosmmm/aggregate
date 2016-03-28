@@ -132,8 +132,8 @@ class PeriodicPiAgg(object):
         if IPV6_REGEX.match(kwargs['address']):
             return
 
-        if kwargs['kind'] != '_http._tcp':
-            return
+        #if kwargs['kind'] != '_http._tcp':
+        #    return
 
         if self.listen_iface != None:
             if kwargs['iface'] != self.listen_iface:
