@@ -36,7 +36,7 @@ class PeriodicPiAgg(object):
         self.drvman.install_custom_method('ppagg.get_nodes', self.get_active_nodes)
         self.drvman.install_custom_method('ppagg.del_node', self.del_active_node)
         self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
-        self.drvman.install_custom_method('ppagg.add_service_kind', self.add_service_kind)
+        self.drvman.install_custom_method('ppagg.add_mdns_kind', self.add_service_kind)
 
         #install custom hooks
         self.drvman.install_custom_hook('ppagg.node_discovered')
