@@ -4,6 +4,9 @@ from dbus.mainloop.glib import DBusGMainLoop
 from util.thread import StoppableThread
 import signal
 import logging
+import socket
+import time
+import re
 
 def get_service_text_list(byte_array):
     if byte_array.signature != 'ay':
@@ -105,3 +108,95 @@ class AvahiDiscoverLoop(StoppableThread):
         #finish thread execution
         if self.is_stopped():
             exit(0)
+
+class SimpleSSDPDiscovery(StoppableThread):
+
+    def __init__(self, root_logger, interval, removal_interval, service_discovered_cb=None, service_removed_cb=None):
+        super(SimpleSSDPDiscovery, self).__init__()
+        self.logger = logging.getLogger('{}.ssdp'.format(root_logger))
+        self.intval = interval
+        self.rem_intval_units = removal_interval
+        self.queries = {}
+
+        #callbacks
+        self.discover_cb = service_discovered_cb
+        self.remove_cb = service_removed_cb
+
+        #keep a dictionary of known services and generate events from that
+        self.known_services = {}
+
+    def add_discovery_type(self, host_addr, host_port, service_type):
+        self.queries[service_type] = [host_addr, host_port]
+
+    def remove_discovery_type(self, service_type):
+        if service_type in self.queries:
+            del self.queries[service_type]
+
+    def _parse_ssdp_return(self, data):
+        #remove blank line at the end!
+        lines = data.split('\n')[:-2]
+
+        #check response
+        m = re.match(r'^HTTP/([0-9\.]+) ([0-9]+) (.*)', lines[0])
+        if m == None:
+            #garbage
+            return None
+
+        #build a dictionary with the data retrieved
+        ret_val = {}
+        for line in lines[1::]:
+            m = re.match(r'([a-zA-Z_\-]+):\s*(.*)$', line)
+            ret_val[m.group(1)] = m.group(2).strip()
+
+        return ret_val
+
+    def run(self):
+
+        while True:
+
+            if self.is_stopped():
+                exit(0)
+
+            for st, addr in self.queries.iteritems():
+                ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
+                              "HOST: {}:{}\r\n".format(*addr) + \
+                              "MAN: \"ssdp:discover\"\r\n" + \
+                              "ST: {}\r\n".format(st) + "\r\n"
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.settimeout(1)
+                sock.sendto(ssdpRequest, tuple(addr))
+                try:
+                    status = sock.recv(1000)
+                    service = self._parse_ssdp_return(status)
+                    if service['USN'] in self.known_services:
+                        #already accounted for, but update last seen
+                        self.known_services[service['USN']]['last_seen'] = time.time()
+                        continue
+
+                    #else
+                    if self.discover_cb:
+                        #put last seen in
+                        service['last_seen'] = time.time()
+                        self.known_services[service['USN']] = service
+                        self.discover_cb(**service)
+
+                except socket.timeout:
+                    #not found!
+                    pass
+
+
+            #remove services not seen in a while
+            services_to_remove = []
+            for usn, service in self.known_services.iteritems():
+                if time.time() - service['last_seen'] > self.intval*self.rem_intval_units:
+                    #remove
+                    if self.remove_cb:
+                        self.remove_cb(**service)
+                        services_to_remove.append(usn)
+
+            for usn in services_to_remove:
+                del self.known_services[usn]
+
+
+            time.sleep(self.intval)
