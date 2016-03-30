@@ -1,4 +1,4 @@
-from discover.discover import AvahiDiscoverLoop
+from discover.discover import AvahiDiscoverLoop, SimpleSSDPDiscovery
 from node.node import PeriodicPiNode
 import signal
 import avahi
@@ -26,6 +26,7 @@ class PeriodicPiAgg(object):
         self.agg_element = aggregator_element
         self.running = False
         self.service_types = set(['_http._tcp'])
+        self.ssdp_services = []
 
         self.logger = logging.getLogger('ppagg.ctrl')
 
@@ -37,10 +38,13 @@ class PeriodicPiAgg(object):
         self.drvman.install_custom_method('ppagg.del_node', self.del_active_node)
         self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
         self.drvman.install_custom_method('ppagg.add_mdns_kind', self.add_service_kind)
+        self.drvman.install_custom_method('ppagg.add_ssdp_search', self.add_ssdp_search)
 
         #install custom hooks
         self.drvman.install_custom_hook('ppagg.node_discovered')
         self.drvman.install_custom_hook('ppagg.node_removed')
+        self.drvman.install_custom_hook('ppagg.ssdp_discovered')
+        self.drvman.install_custom_hook('ppagg.ssdp_removed')
         self.drvman.install_custom_hook('ppagg.agg_started')
         self.drvman.install_custom_hook('ppagg.agg_stopped')
 
@@ -64,6 +68,12 @@ class PeriodicPiAgg(object):
                                                service_removed_cb=self.remove_node,
                                                type_filter=self.service_types)
 
+        self.ssdp_search = SimpleSSDPDiscovery(root_logger='ppagg',
+                                               interval=3,
+                                               removal_interval=10,
+                                               service_discovered_cb=self.discover_ssdp,
+                                               service_removed_cb=self.remove_ssdp)
+
         #setup json server
         self.json_server = PeriodicPiAggController(self.drvman, self.active_nodes)
 
@@ -74,6 +84,10 @@ class PeriodicPiAgg(object):
 
         #start json server
         self.json_server.start()
+
+        self.ssdp_search.start()
+        for ssdp_service in self.ssdp_services:
+            self.ssdp_search.add_discovery_type(**ssdp_service)
 
         #trigger start hook
         self.drvman.trigger_custom_hook('ppagg.agg_started', address='', port=80)
@@ -97,6 +111,9 @@ class PeriodicPiAgg(object):
         #wait for json server to shutdown
         self.json_server.stop()
         self.json_server.join()
+
+        self.ssdp_search.stop()
+        self.ssdp_search.join()
 
     def module_tick(self):
         self.drvman.module_system_tick()
@@ -122,6 +139,15 @@ class PeriodicPiAgg(object):
         self.logger.debug('adding service type "{}" to scan filter'.format(service_kind))
         self.service_types.add(service_kind)
         return True
+
+    def add_ssdp_search(self, host_addr, host_port, service_type):
+
+        if self.running:
+            return False
+
+        self.ssdp_services.append({'host_addr': host_addr,
+                                   'host_port': host_port,
+                                   'service_type': service_type})
 
     def add_active_node(self, node_name, node_object):
         if node_name in self.active_nodes:
@@ -165,6 +191,14 @@ class PeriodicPiAgg(object):
         #search and remove node
         self.logger.debug('service was removed: {}'.format(kwargs['name']))
         self.drvman.trigger_custom_hook('ppagg.node_removed', **kwargs)
+
+    def discover_ssdp(self, **kwargs):
+        self.logger.debug('discovered service through ssdp with usn: {}'.format(kwargs['USN']))
+        self.drvman.trigger_custom_hook('ppagg.ssdp_discovered', **kwargs)
+
+    def remove_ssdp(self, **kwargs):
+        self.logger.debug('ssdp service with usn {} was removed'.format(kwargs['USN']))
+        self.drvman.trigger_custom_hook('ppagg.ssdp_removed', **kwargs)
 
     def get_server_address(self):
         return { 'address' : socket.gethostname(), 'port' : 80 }
