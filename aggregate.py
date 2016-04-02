@@ -30,7 +30,7 @@ class PeriodicPiAgg(object):
 
         self.logger = logging.getLogger('ppagg.ctrl')
 
-        self.drvman = ModuleManager('ppagg', 'plugins')
+        self.drvman = ModuleManager('ppagg', 'plugins', 'scripts')
 
         #install custom methods
         self.drvman.install_custom_method('ppagg.add_node', self.add_active_node)
@@ -52,8 +52,12 @@ class PeriodicPiAgg(object):
         self.logger.info('Initial plugin scan')
         self.drvman.discover_modules()
         self.available_drivers = []
-        for driver in self.drvman.list_discovered_modules():
+        for driver in self.drvman.list_discovered_modules().values():
             self.available_drivers.append(driver.arg_name)
+
+        #discover scriots
+        self.logger.info('Initial script scan')
+        self.drvman.discover_scripts()
 
         #service discover loop
         self.discover_loop = None
