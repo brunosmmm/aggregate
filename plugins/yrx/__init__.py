@@ -103,6 +103,20 @@ class YRXNodeDriver(Module):
     def _get_zone_input(self):
         return self.rx.zone_input
 
+    def _set_zone_input(self, input_name):
+        if input_name not in self.rx.inputs():
+            self.interrupt_handler(log_error='Invalid input: "{}"'.format(input_name))
+            return False
+
+        self.rx.zone_input = input_name
+
+    def _set_main_input(self, input_name):
+        if input_name not in self.rx.inputs():
+            self.interrupt_handler(log_error='Invalid input: "{}"'.format(input_name))
+            return False
+
+        self.rx.main_input = input_name
+
     def _get_main_input(self):
         return self.rx.main_input
 
