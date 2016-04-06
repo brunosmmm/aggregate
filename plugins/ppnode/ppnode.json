@@ -8,7 +8,7 @@
         "node_plugins": {
             "permissions": 0,
             "data_type": 6,
-            "property_desc": "Plygins active at node side"
+            "property_desc": "Plugins active at node side"
         }
     },
     "module_methods": {
@@ -26,7 +26,7 @@
                 },
                 "method_args": {
                     "arg_desc": "Method arguments",
-                    "arq_required": false,
+                    "arg_required": false,
                     "arg_dtype": 9
                 }
             },
