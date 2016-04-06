@@ -1,13 +1,10 @@
 from discover.discover import AvahiDiscoverLoop, SimpleSSDPDiscovery
-from node.node import PeriodicPiNode
 import signal
 import avahi
 import re
-import importlib
 import logging
 from periodicpy.plugmgr import ModuleManager
 from jsonsrv.server import PeriodicPiAggController
-import pyjsonrpc
 from periodicpy.zeroconf import ZeroconfService
 import time
 import socket
@@ -16,8 +13,10 @@ PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 IPV4_REGEX = re.compile(r'(([0-9]{0,3})\.){3}[0-9]{0,3}')
 IPV6_REGEX = re.compile(r'[0-9a-fA-F]{0,4}::(([0-9a-fA-F]{0,4}):){3}[0-9a-fA-F]{0,4}')
 
+
 class DuplicateNodeError(Exception):
     pass
+
 
 class PeriodicPiAgg(object):
     def __init__(self, filter_iface=None, aggregator_element='lithium'):
@@ -32,15 +31,21 @@ class PeriodicPiAgg(object):
 
         self.drvman = ModuleManager('ppagg', 'plugins', 'scripts')
 
-        #install custom methods
-        self.drvman.install_custom_method('ppagg.add_node', self.add_active_node)
-        self.drvman.install_custom_method('ppagg.get_nodes', self.get_active_nodes)
-        self.drvman.install_custom_method('ppagg.del_node', self.del_active_node)
-        self.drvman.install_custom_method('ppagg.get_addr', self.get_server_address)
-        self.drvman.install_custom_method('ppagg.add_mdns_kind', self.add_service_kind)
-        self.drvman.install_custom_method('ppagg.add_ssdp_search', self.add_ssdp_search)
+        # install custom methods
+        self.drvman.install_custom_method('ppagg.add_node',
+                                          self.add_active_node)
+        self.drvman.install_custom_method('ppagg.get_nodes',
+                                          self.get_active_nodes)
+        self.drvman.install_custom_method('ppagg.del_node',
+                                          self.del_active_node)
+        self.drvman.install_custom_method('ppagg.get_addr',
+                                          self.get_server_address)
+        self.drvman.install_custom_method('ppagg.add_mdns_kind',
+                                          self.add_service_kind)
+        self.drvman.install_custom_method('ppagg.add_ssdp_search',
+                                          self.add_ssdp_search)
 
-        #install custom hooks
+        # install custom hooks
         self.drvman.install_custom_hook('ppagg.node_discovered')
         self.drvman.install_custom_hook('ppagg.node_removed')
         self.drvman.install_custom_hook('ppagg.ssdp_discovered')
@@ -48,25 +53,25 @@ class PeriodicPiAgg(object):
         self.drvman.install_custom_hook('ppagg.agg_started')
         self.drvman.install_custom_hook('ppagg.agg_stopped')
 
-        #discover modules
+        # discover modules
         self.logger.info('Initial plugin scan')
         self.drvman.discover_modules()
         self.available_drivers = []
         for driver in self.drvman.list_discovered_modules().values():
             self.available_drivers.append(driver.arg_name)
 
-        #discover scriots
+        # discover scriots
         self.logger.info('Initial script scan')
         self.drvman.discover_scripts()
 
-        #service discover loop
+        # service discover loop
         self.discover_loop = None
         self.json_server = None
 
     def startup(self):
 
         self.logger.info('Aggregator starting up...')
-        #setup service discovery loop
+        # setup service discovery loop
         self.discover_loop = AvahiDiscoverLoop(root_logger='ppagg',
                                                service_resolved_cb=self.discover_new_node,
                                                service_removed_cb=self.remove_node,
@@ -78,23 +83,26 @@ class PeriodicPiAgg(object):
                                                service_discovered_cb=self.discover_ssdp,
                                                service_removed_cb=self.remove_ssdp)
 
-        #setup json server
-        self.json_server = PeriodicPiAggController(self.drvman, self.active_nodes)
+        # setup json server
+        self.json_server = PeriodicPiAggController(self.drvman,
+                                                   self.active_nodes)
 
-        #start loop
+        # start loop
         self.discover_loop.start()
-        #publish aggregator
+        # publish aggregator
         self._publish_aggregator()
 
-        #start json server
+        # start json server
         self.json_server.start()
 
         self.ssdp_search.start()
         for ssdp_service in self.ssdp_services:
             self.ssdp_search.add_discovery_type(**ssdp_service)
 
-        #trigger start hook
-        self.drvman.trigger_custom_hook('ppagg.agg_started', address='', port=80)
+        # trigger start hook
+        self.drvman.trigger_custom_hook('ppagg.agg_started',
+                                        address='',
+                                        port=80)
 
         self.logger.info('Aggregator successfully started')
         self.running = True
@@ -103,16 +111,16 @@ class PeriodicPiAgg(object):
 
         self.logger.info('Agregator shutting down...')
 
-        #trigger stop hook
+        # trigger stop hook
         self.drvman.trigger_custom_hook('ppagg.agg_stopped')
 
-        #unpublish aggregator
+        # unpublish aggregator
         self._unpublish_aggregator()
-        #wait for discovery loop to shutdown
+        # wait for discovery loop to shutdown
         self.discover_loop.stop()
         self.discover_loop.join()
 
-        #wait for json server to shutdown
+        # wait for json server to shutdown
         self.json_server.stop()
         self.json_server.join()
 
@@ -136,7 +144,8 @@ class PeriodicPiAgg(object):
         return self.active_nodes.keys()
 
     def add_service_kind(self, service_kind):
-        #for simplicity sake, only allow to insert types before startup (for now)
+        # for simplicity sake, only allow to
+        # insert types before startup (for now)
         if self.running:
             return False
 
@@ -169,18 +178,15 @@ class PeriodicPiAgg(object):
         del self.active_nodes[node_name]
 
     def discover_new_node(self, **kwargs):
-        #filter out uninteresting stuff
-        #no IPv6
+        # filter out uninteresting stuff
+        # no IPv6
         if kwargs['proto'] != avahi.PROTO_INET:
             return
 
         if IPV6_REGEX.match(kwargs['address']):
             return
 
-        #if kwargs['kind'] != '_http._tcp':
-        #    return
-
-        if self.listen_iface != None:
+        if self.listen_iface is not None:
             if kwargs['iface'] != self.listen_iface:
                 return
 
@@ -188,11 +194,11 @@ class PeriodicPiAgg(object):
         self.drvman.trigger_custom_hook('ppagg.node_discovered', **kwargs)
 
     def remove_node(self, **kwargs):
-        #no IPv6
+        # no IPv6
         if kwargs['proto'] != avahi.PROTO_INET:
             return
 
-        #search and remove node
+        # search and remove node
         self.logger.debug('service was removed: {}'.format(kwargs['name']))
         self.drvman.trigger_custom_hook('ppagg.node_removed', **kwargs)
 
@@ -205,14 +211,13 @@ class PeriodicPiAgg(object):
         self.drvman.trigger_custom_hook('ppagg.ssdp_removed', **kwargs)
 
     def get_server_address(self):
-        return { 'address' : socket.gethostname(), 'port' : 80 }
+        return {'address': socket.gethostname(), 'port': 80}
 
 if __name__ == "__main__":
 
     def _handle_signal(*args):
         aggregator.shutdown()
         exit(0)
-
 
     logging.basicConfig(level=logging.DEBUG,
                         filename='ppagg.log',
@@ -223,16 +228,16 @@ if __name__ == "__main__":
 
     aggregator = PeriodicPiAgg()
 
-    #setup signal
+    # setup signal
     signal.signal(signal.SIGTERM, _handle_signal)
 
-    #do stuff
+    # do stuff
     aggregator.startup()
 
-    #disable annoying log messages
+    # disable annoying log messages
     logging.getLogger("requests").setLevel(logging.WARNING)
 
-    #wait forever
+    # wait forever
     while True:
         try:
             aggregator.module_tick()
