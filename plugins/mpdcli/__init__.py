@@ -1,17 +1,21 @@
-from periodicpy.plugmgr.plugin import Module, ModuleArgument, ModuleCapabilities
-from periodicpy.plugmgr.plugin.prop import ModuleProperty, ModulePropertyPermissions
-from periodicpy.plugmgr.plugin.dtype import ModuleDataTypes
-from periodicpy.plugmgr.exception import HookNotAvailableError
-from periodicpy.plugmgr import ModuleManagerHookActions
-import re
+from periodicpy.plugmgr.plugin import (Module,
+                                       ModuleArgument,
+                                       ModuleCapabilities)
+from periodicpy.plugmgr import ModuleManagerHookActions as MMHookActions
 from mpd import MPDClient, CommandError
 import socket
 import os.path
 
+
 class MPDClientDriverLoadError(Exception):
+    """Driver load error exception
+    """
     pass
 
+
 class MPDClientDriver(Module):
+    """MPD Client driver
+    """
     _module_desc = ModuleArgument('mpd', 'MPD client-driver')
     _capabilities = [ModuleCapabilities.MultiInstanceAllowed]
     _required_kw = [ModuleArgument('address', 'server address'),
@@ -21,10 +25,9 @@ class MPDClientDriver(Module):
     def __init__(self, **kwargs):
         super(MPDClientDriver, self).__init__(**kwargs)
 
-
         self.cli = MPDClient()
 
-        #try to connect
+        # try to connect
         try:
             self.cli.connect(host=kwargs['address'],
                              port=kwargs['port'])
@@ -35,15 +38,16 @@ class MPDClientDriver(Module):
             try:
                 self.cli.password(kwargs['password'])
             except CommandError:
-                raise MPDClientDriverLoadError('error while trying to input password')
+                raise MPDClientDriverLoadError('error while trying '
+                                               'to input password')
 
-        #disconnect
+        # disconnect
         self.cli.disconnect()
 
-        #attach callbacks
+        # attach callbacks
         self.interrupt_handler(attach_manager_hook=['modman.tick',
                                                     [self._periodic_call,
-                                                     ModuleManagerHookActions.NO_ACTION,
+                                                     MMHookActions.NO_ACTION,
                                                      self._registered_id]])
 
         self._automap_properties()
@@ -68,7 +72,8 @@ class MPDClientDriver(Module):
             try:
                 return fn(self, *args, **kwargs)
             except socket.error:
-                self.interrupt_handler(log_error='could not connect to MPD server')
+                self.interrupt_handler(log_error='could not connect '
+                                       'to MPD server')
 
             return None
 
@@ -199,7 +204,8 @@ class MPDClientDriver(Module):
 
 def discover_module(**kwargs):
     class MPDClientDriverProxy(MPDClientDriver):
-        _, _properties, _methods = Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
-                                                                                        'mpd.json'))
+        _, _properties, _methods =\
+            Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
+                                                                 'mpd.json'))
 
     return MPDClientDriverProxy

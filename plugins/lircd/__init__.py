@@ -62,7 +62,8 @@ class LircdDriver(Module):
 def discover_module(**kwargs):
     # load methods and properties from file
     class LircdDriverProxy(LircdDriver):
-        _, _properties, _methods = Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
-                                                                                        'lircd.json'))
+        _, _properties, _methods =\
+            Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
+                                                                 'lircd.json'))
 
     return LircdDriverProxy
