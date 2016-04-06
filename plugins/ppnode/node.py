@@ -1,5 +1,10 @@
 from util.misc import NodeAddress
-from scan import scan_new_node, scan_node_services, scan_node_modules, retrieve_json_data, post_json_data, NodeScanError
+from scan import (scan_new_node,
+                  scan_node_services,
+                  scan_node_modules,
+                  retrieve_json_data,
+                  post_json_data,
+                  NodeScanError)
 import logging
 from periodicpy.plugmgr.plugin.exception import ModuleAlreadyLoadedError
 
