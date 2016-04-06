@@ -11,7 +11,8 @@ import socket
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 IPV4_REGEX = re.compile(r'(([0-9]{0,3})\.){3}[0-9]{0,3}')
-IPV6_REGEX = re.compile(r'[0-9a-fA-F]{0,4}::(([0-9a-fA-F]{0,4}):){3}[0-9a-fA-F]{0,4}')
+IPV6_REGEX = re.compile(r'[0-9a-fA-F]{0,4}::'
+                        '(([0-9a-fA-F]{0,4}):){3}[0-9a-fA-F]{0,4}')
 
 
 class DuplicateNodeError(Exception):
@@ -135,7 +136,8 @@ class PeriodicPiAgg(object):
 
     def _publish_aggregator(self):
         self.logger.debug('publishing aggregator service')
-        self.avahi_service = ZeroconfService(name='PeriodicPi Aggregator [{}]'.format(self.agg_element),
+        self.avahi_service = ZeroconfService(name='PeriodicPi Aggregator [{}]'
+                                             .format(self.agg_element),
                                              port=8080,
                                              stype='_http._tcp')
         self.avahi_service.publish()
@@ -149,7 +151,8 @@ class PeriodicPiAgg(object):
         if self.running:
             return False
 
-        self.logger.debug('adding service type "{}" to scan filter'.format(service_kind))
+        self.logger.debug('adding service type "{}" to scan filter'
+                          .format(service_kind))
         self.service_types.add(service_kind)
         return True
 
@@ -166,7 +169,8 @@ class PeriodicPiAgg(object):
         if node_name in self.active_nodes:
             raise DuplicateNodeError('node is already active')
 
-        self.logger.debug('adding node "{}" to the active node list'.format(node_name))
+        self.logger.debug('adding node "{}" to the active node list'
+                          .format(node_name))
         self.active_nodes[node_name] = node_object
 
     def del_active_node(self, node_name):
@@ -174,7 +178,8 @@ class PeriodicPiAgg(object):
             self.logger.warn('node "{}" is not present'.format(node_name))
             return
 
-        self.logger.debug('removing node "{}" from the active node list'.format(node_name))
+        self.logger.debug('removing node "{}" from the active node list'
+                          .format(node_name))
         del self.active_nodes[node_name]
 
     def discover_new_node(self, **kwargs):
@@ -203,11 +208,13 @@ class PeriodicPiAgg(object):
         self.drvman.trigger_custom_hook('ppagg.node_removed', **kwargs)
 
     def discover_ssdp(self, **kwargs):
-        self.logger.debug('discovered service through ssdp with usn: {}'.format(kwargs['USN']))
+        self.logger.debug('discovered service through ssdp with usn: {}'
+                          .format(kwargs['USN']))
         self.drvman.trigger_custom_hook('ppagg.ssdp_discovered', **kwargs)
 
     def remove_ssdp(self, **kwargs):
-        self.logger.debug('ssdp service with usn {} was removed'.format(kwargs['USN']))
+        self.logger.debug('ssdp service with usn {} was removed'
+                          .format(kwargs['USN']))
         self.drvman.trigger_custom_hook('ppagg.ssdp_removed', **kwargs)
 
     def get_server_address(self):
@@ -222,7 +229,8 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG,
                         filename='ppagg.log',
                         filemode='a',
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                        format='%(asctime)s - %(name)s'
+                        ' - %(levelname)s - %(message)s')
 
     logger = logging.getLogger('ppagg')
 
