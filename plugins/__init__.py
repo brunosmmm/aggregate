@@ -10,5 +10,5 @@ for module_file in MODULE_LIST:
         continue
 
     m = MODULE_NAME_REGEX.match(module_file)
-    if m != None:
+    if m is not None:
         MODULES.append(m.group(1))
