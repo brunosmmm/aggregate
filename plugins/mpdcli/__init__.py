@@ -6,6 +6,7 @@ from periodicpy.plugmgr import ModuleManagerHookActions
 import re
 from mpd import MPDClient, CommandError
 import socket
+import os.path
 
 class MPDClientDriverLoadError(Exception):
     pass
@@ -198,6 +199,7 @@ class MPDClientDriver(Module):
 
 def discover_module(**kwargs):
     class MPDClientDriverProxy(MPDClientDriver):
-        _, _properties, _methods = Module.build_module_structure_from_file(kwargs['plugin_path']+'mpd.json')
+        _, _properties, _methods = Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
+                                                                                        'mpd.json'))
 
     return MPDClientDriverProxy

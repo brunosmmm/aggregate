@@ -6,6 +6,7 @@ from periodicpy.plugmgr import ModuleManagerHookActions
 import requests
 import xmltodict
 import re
+import os.path
 
 MODULE_VERSION = '0.1'
 
@@ -114,7 +115,8 @@ class RokuTVDriver(Module):
 def discover_module(**kwargs):
     #load methods and properties from file
     class RokuTVDriverProxy(RokuTVDriver):
-        _, _properties, _methods = Module.build_module_structure_from_file(kwargs['plugin_path']+'rokutv.json')
+        _, _properties, _methods = Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
+                                                                                        'rokutv.json'))
 
 
     #add SSDP discoverer

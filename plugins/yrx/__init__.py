@@ -5,6 +5,7 @@ from periodicpy.plugmgr.exception import HookNotAvailableError
 from periodicpy.plugmgr import ModuleManagerHookActions
 import re
 import rxv
+import os.path
 
 YAMAHARX_REGEX = re.compile(r'^RX-A1020 ([0-9]+)')
 
@@ -122,7 +123,8 @@ class YRXNodeDriver(Module):
 
 def discover_module(**kwargs):
     class YRXNodeDriverProxy(YRXNodeDriver):
-        _, _properties, _methods = Module.build_module_structure_from_file(kwargs['plugin_path']+'yrx.json')
+        _, _properties, _methods = Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
+                                                                                        'yrx.json'))
 
     try:
         kwargs['modman'].attach_custom_hook('ppagg.node_discovered',
