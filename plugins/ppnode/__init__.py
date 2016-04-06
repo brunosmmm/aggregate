@@ -1,14 +1,11 @@
 from periodicpy.plugmgr.plugin import (Module,
                                        ModuleArgument,
                                        ModuleCapabilities)
-from periodicpy.plugmgr.plugin.prop import (ModuleProperty,
-                                            ModulePropertyPermissions)
-from periodicpy.plugmgr.plugin.method import ModuleMethod, ModuleMethodArgument
-from periodicpy.plugmgr.plugin.dtype import ModuleDataTypes
 from periodicpy.plugmgr.exception import HookNotAvailableError
 from periodicpy.plugmgr.hook import ModuleManagerHookActions as MMHookActions
 from periodicpy.plugmgr.plugin.util import load_plugin_component
 import re
+import os.path
 
 PERIODIC_PI_NODE_REGEX = re.compile(r'^PeriodicPi node \[([a-zA-Z]+)\]')
 
@@ -28,30 +25,6 @@ class PPNodeDriver(Module):
     _required_kw = [ModuleArgument('address', 'node address'),
                     ModuleArgument('port', 'node port'),
                     ModuleArgument('name', 'node advertised name')]
-    # TODO: use JSON description to create structures
-    _properties = {'node_element': ModuleProperty('Node identifying element',
-                                                  ModulePropertyPermissions.READ,
-                                                  data_type=ModuleDataTypes.STRING),
-                   'node_plugins': ModuleProperty('Plugins active at node',
-                                                  ModulePropertyPermissions.READ,
-                                                  data_type=ModuleDataTypes.STRING_LIST)}
-
-    _methods = {'call_plugin_method': ModuleMethod(method_desc='Call a method provided by a node plugin',
-                                                   method_args={'instance_name': ModuleMethodArgument(argument_desc='Plugin instance name',
-                                                                                                      required=True,
-                                                                                                      data_type=ModuleDataTypes.STRING),
-                                                                'method_name': ModuleMethodArgument(argument_desc='Method name',
-                                                                                                    required=True,
-                                                                                                    data_type=ModuleDataTypes.STRING),
-                                                                'method_args': ModuleMethodArgument(argument_desc='Method arguments',
-                                                                                                    required=False,
-                                                                                                    data_type=ModuleDataTypes.DICT)},
-                                                   method_return=ModuleDataTypes.VOID),
-                'inspect_plugin': ModuleMethod(method_desc='Inspect plugin structure',
-                                               method_args={'instance_name': ModuleMethodArgument(argument_desc='Plugin instance name',
-                                                                                                  required=True,
-                                                                                                  data_type=ModuleDataTypes.STRING)},
-                                               method_return=ModuleDataTypes.DICT)}
 
     def __init__(self, **kwargs):
         super(PPNodeDriver, self).__init__(**kwargs)
@@ -64,9 +37,11 @@ class PPNodeDriver(Module):
             raise PPNodeDriverLoadError('node is already active, '
                                         'not loading another module')
 
-        self.node = node.PeriodicPiNode(m.group(1),
-                                        [kwargs['address'],
-                                         kwargs['port']])
+        # to get rid of syntax errors
+        from node import PeriodicPiNode
+        self.node = PeriodicPiNode(m.group(1),
+                                   [kwargs['address'],
+                                    kwargs['port']])
         self.node.register_basic_information()
 
         # get available drivers
@@ -183,7 +158,10 @@ class PPNodeDriver(Module):
 
 
 def discover_module(**kwargs):
-    # install driver loading hook
+    class PPNodeDriverProxy(PPNodeDriver):
+        _, _properties, _methods =\
+            Module.build_module_structure_from_file(os.path.join(kwargs['plugin_path'],
+                                                                 'ppnode.json'))
     try:
         kwargs['modman'].attach_custom_hook('ppagg.node_discovered',
                                             PPNodeDriver.new_node_detected,
@@ -198,4 +176,4 @@ def discover_module(**kwargs):
     except HookNotAvailableError:
         raise
 
-    return PPNodeDriver
+    return PPNodeDriverProxy
