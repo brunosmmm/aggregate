@@ -1,10 +1,10 @@
-from discover.discover import AvahiDiscoverLoop, SimpleSSDPDiscovery
+from discover import AvahiDiscoverLoop, SimpleSSDPDiscovery
 import signal
 import avahi
 import re
 import logging
 from periodicpy.plugmgr import ModuleManager
-from jsonsrv.server import PeriodicPiAggController
+from jsonsrv import PeriodicPiAggController
 from periodicpy.zeroconf import ZeroconfService
 import time
 import socket
