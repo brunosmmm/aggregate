@@ -3,7 +3,7 @@ import signal
 import avahi
 import re
 import logging
-from periodicpy.plugmgr import ModuleManager
+from viscum import ModuleManager
 from jsonsrv import PeriodicPiAggController
 from periodicpy.zeroconf import ZeroconfService
 import time
