@@ -1,3 +1,6 @@
 [submodule "periodicpy"]
 	path = periodicpy
 	url = git@github.com:brunosmmm/periodicpy.git
+[submodule "viscum"]
+	path = viscum
+	url = git@github.com:brunosmmm/viscum.git
