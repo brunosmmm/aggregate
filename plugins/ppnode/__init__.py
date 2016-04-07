@@ -1,9 +1,9 @@
-from periodicpy.plugmgr.plugin import (Module,
-                                       ModuleArgument,
-                                       ModuleCapabilities)
-from periodicpy.plugmgr.exception import HookNotAvailableError
-from periodicpy.plugmgr.hook import ModuleManagerHookActions as MMHookActions
-from periodicpy.plugmgr.plugin.util import load_plugin_component
+from viscum.plugin import (Module,
+                           ModuleArgument,
+                           ModuleCapabilities)
+from viscum.exception import HookNotAvailableError
+from viscum.hook import ModuleManagerHookActions as MMHookAct
+from viscum.plugin.util import load_plugin_component
 import re
 import os.path
 
@@ -58,17 +58,17 @@ class PPNodeDriver(Module):
         # attach to custom aggregator hooks
         self.interrupt_handler(attach_custom_hook=['ppagg.node_removed',
                                                    [self._node_removed,
-                                                    MMHookActions.UNLOAD_MODULE,
+                                                    MMHookAct.UNLOAD_MODULE,
                                                     self._registered_id]])
 
         self.interrupt_handler(attach_custom_hook=['ppagg.agg_started',
                                                    [self._agg_started,
-                                                    MMHookActions.NO_ACTION,
+                                                    MMHookAct.NO_ACTION,
                                                     None]])
 
         self.interrupt_handler(attach_custom_hook=['ppagg.agg_stopped',
                                                    [self._agg_stopped,
-                                                    MMHookActions.NO_ACTION,
+                                                    MMHookAct.NO_ACTION,
                                                     None]])
 
         # install external interrupt handler
@@ -165,7 +165,7 @@ def discover_module(**kwargs):
     try:
         kwargs['modman'].attach_custom_hook('ppagg.node_discovered',
                                             PPNodeDriver.new_node_detected,
-                                            MMHookActions.LOAD_MODULE,
+                                            MMHookAct.LOAD_MODULE,
                                             PPNodeDriver)
 
         # TODO: find a better way to do this

@@ -1,7 +1,7 @@
-from periodicpy.plugmgr.plugin import (Module,
-                                       ModuleArgument,
-                                       ModuleCapabilities)
-from periodicpy.plugmgr import ModuleManagerHookActions as MMHookActions
+from viscum.plugin import (Module,
+                           ModuleArgument,
+                           ModuleCapabilities)
+from viscum import ModuleManagerHookActions as MMHookAct
 import requests
 import xmltodict
 import re
@@ -38,7 +38,7 @@ class RokuTVDriver(Module):
         # attach to ssdp remove hook
         self.interrupt_handler(attach_custom_hook=['ppagg.ssdp_removed',
                                                    [self._ssdp_removed,
-                                                    MMHookActions.UNLOAD_MODULE,
+                                                    MMHookAct.UNLOAD_MODULE,
                                                     self._registered_id]])
 
         m = ROKU_TV_SSDP_REGEX.match(kwargs['USN'])
@@ -154,7 +154,7 @@ def discover_module(**kwargs):
     # attach to discovery hook
     kwargs['modman'].attach_custom_hook('ppagg.ssdp_discovered',
                                         RokuTVDriver.new_ssdp_service,
-                                        MMHookActions.LOAD_MODULE,
+                                        MMHookAct.LOAD_MODULE,
                                         RokuTVDriverProxy)
 
     return RokuTVDriverProxy

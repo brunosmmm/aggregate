@@ -1,8 +1,8 @@
-from periodicpy.plugmgr.plugin import (Module,
-                                       ModuleArgument,
-                                       ModuleCapabilities)
-from periodicpy.plugmgr.exception import HookNotAvailableError
-from periodicpy.plugmgr import ModuleManagerHookActions as MMHookActions
+from viscum.plugin import (Module,
+                           ModuleArgument,
+                           ModuleCapabilities)
+from viscum.exception import HookNotAvailableError
+from viscum import ModuleManagerHookActions as MMHookAct
 import re
 import rxv
 import os.path
@@ -44,7 +44,7 @@ class YRXNodeDriver(Module):
         # attach node_removed hook
         self.interrupt_handler(attach_custom_hook=['ppagg.node_removed',
                                                    [self._node_removed,
-                                                    MMHookActions.UNLOAD_MODULE,
+                                                    MMHookAct.UNLOAD_MODULE,
                                                     self._registered_id]])
 
         self.rx = rxv.RXV('http://{}:{}/YamahaRemoteControl/ctrl'
@@ -172,7 +172,7 @@ def discover_module(**kwargs):
     try:
         kwargs['modman'].attach_custom_hook('ppagg.node_discovered',
                                             YRXNodeDriver.new_node_detected,
-                                            MMHookActions.LOAD_MODULE,
+                                            MMHookAct.LOAD_MODULE,
                                             YRXNodeDriver)
     except HookNotAvailableError:
         raise

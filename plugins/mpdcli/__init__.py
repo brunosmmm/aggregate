@@ -1,7 +1,7 @@
-from periodicpy.plugmgr.plugin import (Module,
-                                       ModuleArgument,
-                                       ModuleCapabilities)
-from periodicpy.plugmgr import ModuleManagerHookActions as MMHookActions
+from viscum.plugin import (Module,
+                           ModuleArgument,
+                           ModuleCapabilities)
+from viscum.hook import ModuleManagerHookActions as MMHookAct
 from mpd import MPDClient, CommandError
 import socket
 import os.path
@@ -47,7 +47,7 @@ class MPDClientDriver(Module):
         # attach callbacks
         self.interrupt_handler(attach_manager_hook=['modman.tick',
                                                     [self._periodic_call,
-                                                     MMHookActions.NO_ACTION,
+                                                     MMHookAct.NO_ACTION,
                                                      self._registered_id]])
 
         self._automap_properties()

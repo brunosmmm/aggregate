@@ -1,6 +1,6 @@
-from periodicpy.plugmgr.plugin import (Module,
-                                       ModuleArgument,
-                                       ModuleCapabilities)
+from viscum.plugin import (Module,
+                           ModuleArgument,
+                           ModuleCapabilities)
 from periodicpy.irtools.lirc import LircClient
 import os.path
 
