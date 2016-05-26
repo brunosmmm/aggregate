@@ -81,6 +81,25 @@ class YRXNodeDriver(Module):
 
         return True
 
+    def _send_remote_key(self, key_name):
+
+        if key_name == 'KEY_VOLUME_UP':
+            self._increment_volume()
+        elif key_name == 'KEY_VOLUME_DOWN':
+            self._decrement_volume()
+        elif key_name == 'KEY_MUTE':
+            self.rx.mute = not self.rx.mute
+
+    def _increment_volume(self):
+        volume = float(self._get_volume())
+        volume += 0.5
+        self._set_volume(volume)
+
+    def _decrement_volume(self):
+        volume = float(self._get_volume())
+        volume -= 0.5
+        self._set_volume(volume)
+
     def _get_volume(self):
         """Get main zone volume
         """

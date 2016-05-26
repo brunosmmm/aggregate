@@ -1,5 +1,27 @@
 {
-    "module_methods": {},
+    "module_methods": {
+        "increment_volume": {
+            "method_args": {},
+            "method_desc": "Increments volume",
+            "method_return": null
+        },
+        "decrement_volume": {
+            "method_args": {},
+            "method_desc": "Decrements volume",
+            "method_return": null
+        },
+        "send_remote_key": {
+            "method_args": {
+                "key_name": {
+                    "arg_desc": "remote key name to emulate",
+                    "arg_dtype": null,
+                    "arg_required": true
+                }
+            },
+            "method_desc": "Emulates a keypress on the remote",
+            "method_return": null
+        }
+    },
     "module_properties": {
         "volume": {
             "permissions": 2,
