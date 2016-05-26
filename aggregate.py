@@ -45,6 +45,8 @@ class PeriodicPiAgg(object):
                                           self.add_service_kind)
         self.drvman.install_custom_method('ppagg.add_ssdp_search',
                                           self.add_ssdp_search)
+        self.drvman.install_custom_method('ppagg.reload',
+                                          self.reload)
 
         # install custom hooks
         self.drvman.install_custom_hook('ppagg.node_discovered')
@@ -219,6 +221,11 @@ class PeriodicPiAgg(object):
 
     def get_server_address(self):
         return {'address': socket.gethostname(), 'port': 80}
+
+    def reload(self):
+        self.shutdown()
+        time.sleep(2)
+        self.startup()
 
 if __name__ == "__main__":
 

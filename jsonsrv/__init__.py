@@ -20,6 +20,11 @@ def make_json_server(drv_manager, node_list):
 
             return ret
 
+        # TEMPORARY
+        @pyjsonrpc.rpcmethod
+        def reload_all(self):
+            self.drvman.call_custom_method('ppagg.reload')
+
         @pyjsonrpc.rpcmethod
         def list_drivers(self):
             return self.drvman.list_loaded_modules()
