@@ -138,7 +138,7 @@ class SimpleSSDPDiscovery(StoppableThread):
         if service_type in self.queries:
             del self.queries[service_type]
 
-    def _parse_ssdp_return(self, data):
+    def _parse_ssdp_return(self, data, search_all=False):
         # remove blank line at the end!
         lines = data.split('\n')[:-2]
 
@@ -152,7 +152,7 @@ class SimpleSSDPDiscovery(StoppableThread):
         ret_val = {}
         for line in lines[1::]:
             m = re.match(r'([a-zA-Z_\-]+):\s*(.*)$', line)
-            ret_val[m.group(1)] = m.group(2).strip()
+            ret_val[m.group(1).upper()] = m.group(2).strip()
 
         return ret_val
 
@@ -167,14 +167,16 @@ class SimpleSSDPDiscovery(StoppableThread):
                 ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
                               "HOST: {}:{}\r\n".format(*addr) + \
                               "MAN: \"ssdp:discover\"\r\n" + \
+                              "MX: 3\r\n" + \
                               "ST: {}\r\n".format(st) + "\r\n"
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                sock.settimeout(1)
+                sock.settimeout(3)
                 sock.sendto(ssdpRequest, tuple(addr))
                 try:
                     status = sock.recv(1000)
-                    service = self._parse_ssdp_return(status)
+                    service = self._parse_ssdp_return(status,
+                                                      (st == 'ssdp:all'))
                     if service['USN'] in self.known_services:
                         # already accounted for, but update last seen
                         a_service = self.known_services[service['USN']]
@@ -190,6 +192,7 @@ class SimpleSSDPDiscovery(StoppableThread):
 
                 except socket.timeout:
                     # not found!
+                    #print 'NOT FOUND: {}'.format(st)
                     pass
 
             # remove services not seen in a while
