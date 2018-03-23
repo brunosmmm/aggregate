@@ -4,4 +4,4 @@ git+https://github.com/brunosmmm/python-jsonrpc.git@2to3#egg=python-jsonrpc
 dbus-python
 PyGObject
 xmltodict
-
+requests
