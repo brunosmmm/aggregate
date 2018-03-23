@@ -1,7 +1,7 @@
 from viscum.plugin import (Module,
                            ModuleArgument,
                            ModuleCapabilities)
-from viscum import ModuleManagerHookActions as MMHookAct
+from viscum.hook import ModuleManagerHookActions as MMHookAct
 #import requests
 #import xmltodict
 import socket

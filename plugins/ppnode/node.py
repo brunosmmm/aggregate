@@ -1,4 +1,4 @@
-from util.misc import NodeAddress
+from aggregate.util.misc import NodeAddress
 from scan import (scan_new_node,
                   scan_node_services,
                   scan_node_modules,

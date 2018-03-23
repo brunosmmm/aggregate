@@ -1,5 +1,5 @@
 import requests
-from util.misc import get_full_node_address
+from aggregate.util.misc import get_full_node_address
 
 NODE_INFO_PATH = 'status/node'
 NODE_SERVICES_PATH = 'status/services'

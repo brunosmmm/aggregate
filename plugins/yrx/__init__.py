@@ -2,7 +2,7 @@ from viscum.plugin import (Module,
                            ModuleArgument,
                            ModuleCapabilities)
 from viscum.exception import HookNotAvailableError
-from viscum import ModuleManagerHookActions as MMHookAct
+from viscum.hook import ModuleManagerHookActions as MMHookAct
 import re
 import rxv
 import os.path
