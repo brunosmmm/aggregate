@@ -163,7 +163,7 @@ class SimpleSSDPDiscovery(StoppableThread):
             if self.is_stopped():
                 exit(0)
 
-            for st, addr in self.queries.iteritems():
+            for st, addr in self.queries.items():
                 ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
                               "HOST: {}:{}\r\n".format(*addr) + \
                               "MAN: \"ssdp:discover\"\r\n" + \
@@ -197,7 +197,7 @@ class SimpleSSDPDiscovery(StoppableThread):
 
             # remove services not seen in a while
             services_to_remove = []
-            for usn, service in self.known_services.iteritems():
+            for usn, service in self.known_services.items():
                 if time.time() - service['last_seen'] > self.intval*self.rem_intval_units:
                     # remove
                     if self.remove_cb:
