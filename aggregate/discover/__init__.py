@@ -140,7 +140,7 @@ class SimpleSSDPDiscovery(StoppableThread):
 
     def _parse_ssdp_return(self, data, search_all=False):
         # remove blank line at the end!
-        lines = data.split('\n')[:-2]
+        lines = data.decode().split('\n')[:-2]
 
         # check response
         m = re.match(r'^HTTP/([0-9\.]+) ([0-9]+) (.*)', lines[0])
@@ -172,7 +172,7 @@ class SimpleSSDPDiscovery(StoppableThread):
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 sock.settimeout(3)
-                sock.sendto(ssdpRequest, tuple(addr))
+                sock.sendto(ssdpRequest.encode(), tuple(addr))
                 try:
                     status = sock.recv(1000)
                     service = self._parse_ssdp_return(status,
