@@ -1,5 +1,5 @@
 git+https://github.com/brunosmmm/viscum.git@master#egg=viscum
 git+https://github.com/brunosmmm/periodicpy.git@master#egg=periodicpy
+git+https://github.com/brunosmmm/python-jsonrpc.git@2to3#egg=python-jsonrpc
 dbus-python
 PyGObject
-python-jsonrpc
