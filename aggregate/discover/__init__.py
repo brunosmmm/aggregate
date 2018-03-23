@@ -2,7 +2,7 @@ import dbus
 from gi.repository import GObject as gobject
 import avahi
 from dbus.mainloop.glib import DBusGMainLoop
-from util.thread import StoppableThread
+from aggregate.util.thread import StoppableThread
 import logging
 import socket
 import time

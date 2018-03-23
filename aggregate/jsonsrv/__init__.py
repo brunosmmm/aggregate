@@ -1,5 +1,5 @@
 import pyjsonrpc
-from util.thread import StoppableThread
+from aggregate.util.thread import StoppableThread
 
 
 def make_json_server(drv_manager, node_list):
