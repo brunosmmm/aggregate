@@ -1,3 +1,4 @@
 git+https://github.com/brunosmmm/viscum.git@master#egg=viscum
 dbus-python
 PyGObject
+python-jsonrpc
