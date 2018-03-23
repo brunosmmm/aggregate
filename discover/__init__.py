@@ -1,5 +1,5 @@
 import dbus
-import gobject
+from gi.repository import GObject as gobject
 import avahi
 from dbus.mainloop.glib import DBusGMainLoop
 from util.thread import StoppableThread
